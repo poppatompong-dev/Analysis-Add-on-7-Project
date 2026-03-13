@@ -4,52 +4,66 @@ export function formatNumber(value: number) {
   return new Intl.NumberFormat("th-TH").format(value);
 }
 
-export function getMetrics(projects: Project[]) {
-  const totalBudget = projects.reduce((sum, item) => sum + item.budget, 0);
-  const avgBudget = projects.length ? totalBudget / projects.length : 0;
-  const maxProject = projects.length ? [...projects].sort((a, b) => b.budget - a.budget)[0] : null;
-  const pillarCount = new Set(projects.map((item) => item.pillar)).size;
+export function getExecutiveSummary(filtered: Project[], allProjects: Project[]): string[] {
+  if (filtered.length === 0) return ["ไม่มีโครงการในมุมมองที่เลือก"];
 
-  return { totalBudget, avgBudget, maxProject, pillarCount };
-}
+  const filteredBudget = filtered.reduce((s, p) => s + p.budget, 0);
+  const totalBudget = allProjects.reduce((s, p) => s + p.budget, 0);
 
-export function getExecutiveSummary(filtered: Project[], allProjects: Project[]) {
-  const filteredBudget = filtered.reduce((sum, item) => sum + item.budget, 0);
-  const totalBudget = allProjects.reduce((sum, item) => sum + item.budget, 0);
-  const pillarMap = new Map<string, number>();
-  filtered.forEach((item) => pillarMap.set(item.pillar, (pillarMap.get(item.pillar) || 0) + item.budget));
-  const topPillarEntry = [...pillarMap.entries()].sort((a, b) => b[1] - a[1])[0];
-  const avgBudget = filtered.length ? filteredBudget / filtered.length : 0;
-  const maxProject = filtered.length ? [...filtered].sort((a, b) => b.budget - a.budget)[0] : null;
-  const yearCount = new Set(filtered.map((item) => item.year)).size;
+  const pillarMap = new Map<string, { budget: number; count: number }>();
+  filtered.forEach((p) => {
+    const existing = pillarMap.get(p.pillar) ?? { budget: 0, count: 0 };
+    pillarMap.set(p.pillar, { budget: existing.budget + p.budget, count: existing.count + 1 });
+  });
+  const topPillar = [...pillarMap.entries()].sort((a, b) => b[1].budget - a[1].budget)[0];
+
+  const categoryMap = new Map<string, number>();
+  filtered.forEach((p) => categoryMap.set(p.category, (categoryMap.get(p.category) ?? 0) + p.budget));
+  const topCategory = [...categoryMap.entries()].sort((a, b) => b[1] - a[1])[0];
+
+  const maxProject = [...filtered].sort((a, b) => b.budget - a.budget)[0];
+  const avgBudget = filteredBudget / filtered.length;
+  const years = [...new Set(filtered.map((p) => p.year))].sort();
+
+  const delayedCount = filtered.filter((p) => p.status === "delayed").length;
+  const atRiskCount = filtered.filter((p) => p.status === "at-risk").length;
+  const completedCount = filtered.filter((p) => p.status === "completed").length;
+  const avgCompletion = filtered.filter((p) => p.completionPct != null).reduce((s, p) => s + (p.completionPct ?? 0), 0) / (filtered.filter((p) => p.completionPct != null).length || 1);
 
   const bullets: string[] = [];
-  bullets.push(`งบประมาณรวม ${formatNumber(filteredBudget)} บาท จาก ${filtered.length} โครงการ` + (totalBudget ? ` คิดเป็น ${Math.round((filteredBudget / totalBudget) * 100)}% ของงบทั้งหมด` : ""));
-  if (topPillarEntry) {
-    bullets.push(`งบประมาณส่วนใหญ่กระจุกตัวใน ${topPillarEntry[0]} คิดเป็น ${Math.round((topPillarEntry[1] / filteredBudget) * 100)}% ของมุมมองปัจจุบัน`);
+
+  bullets.push(
+    `งบประมาณรวม ${formatNumber(filteredBudget)} บาท จาก ${filtered.length} โครงการ` +
+    (totalBudget > 0 ? ` (${Math.round((filteredBudget / totalBudget) * 100)}% ของงบทั้งหมด)` : "")
+  );
+
+  if (topPillar) {
+    const pct = Math.round((topPillar[1].budget / filteredBudget) * 100);
+    bullets.push(`ยุทธศาสตร์ที่ใช้งบสูงสุดคือ "${topPillar[0]}" — ${formatNumber(topPillar[1].budget)} บาท (${pct}%, ${topPillar[1].count} โครงการ)`);
   }
-  if (maxProject) {
-    bullets.push(`โครงการที่ใช้งบสูงสุดคือ ${maxProject.name} จำนวน ${formatNumber(maxProject.budget)} บาท`);
+
+  if (topCategory) {
+    bullets.push(`หมวดหมู่ที่ใช้งบสูงสุดคือ "${topCategory[0]}" — ${formatNumber(topCategory[1])} บาท`);
   }
-  bullets.push(`งบประมาณเฉลี่ยต่อโครงการอยู่ที่ ${formatNumber(Math.round(avgBudget))} บาท`);
-  bullets.push(yearCount > 1 ? "โครงการในมุมมองนี้ครอบคลุม 2 ปีงบประมาณ" : `โครงการทั้งหมดอยู่ในปีงบประมาณ ${filtered[0]?.year ?? "-"}`);
+
+  bullets.push(`โครงการงบสูงสุดคือ "${maxProject.name}" — ${formatNumber(maxProject.budget)} บาท`);
+  bullets.push(`งบประมาณเฉลี่ยต่อโครงการ ${formatNumber(Math.round(avgBudget))} บาท`);
+
+  if (years.length > 1) {
+    bullets.push(`ครอบคลุม ${years.length} ปีงบประมาณ: ${years.join(", ")}`);
+  } else {
+    bullets.push(`ปีงบประมาณ ${years[0] ?? "—"}`);
+  }
+
+  if (delayedCount > 0 || atRiskCount > 0) {
+    bullets.push(`โครงการล่าช้า ${delayedCount} รายการ · เสี่ยง ${atRiskCount} รายการ — ต้องการการติดตาม`);
+  }
+  if (completedCount > 0) {
+    bullets.push(`เสร็จสิ้นแล้ว ${completedCount} โครงการ จากทั้งหมด ${filtered.length} ในมุมมองนี้`);
+  }
+  if (filtered.some((p) => p.completionPct != null)) {
+    bullets.push(`ความคืบหน้าเฉลี่ย ${Math.round(avgCompletion)}% ในโครงการที่มีข้อมูล`);
+  }
 
   return bullets;
-}
-
-export function getExecutiveInsights(allProjects: Project[]) {
-  const totalBudget = allProjects.reduce((sum, item) => sum + item.budget, 0);
-  const cyber = allProjects.filter((item) => [3, 4, 5].includes(item.id));
-  const cyberBudget = cyber.reduce((sum, item) => sum + item.budget, 0);
-  const governance = allProjects.filter((item) => item.pillar === "Smart Governance");
-  const governanceBudget = governance.reduce((sum, item) => sum + item.budget, 0);
-  const year2570 = allProjects.filter((item) => item.year === "2570");
-
-  return [
-    `โครงการที่ 3, 4 และ 5 เป็นงานด้านไซเบอร์ทั้งหมด รวมงบ ${formatNumber(cyberBudget)} บาท หรือ ${Math.round((cyberBudget / totalBudget) * 100)}% ของงบรวม จึงเป็นจุดตัดสินใจสำคัญที่สุด`,
-    `หากเลือกดำเนินการเฉพาะโครงการที่ 5 แบบรวมศูนย์ จะประหยัดได้ประมาณ ${formatNumber(3_300_000)} บาท เมื่อเทียบกับการทำทั้ง 3 โครงการ`,
-    `Smart Governance ใช้งบ ${formatNumber(governanceBudget)} บาท หรือ ${Math.round((governanceBudget / totalBudget) * 100)}% ของงบทั้งหมด ทำให้งบกระจุกตัวชัดเจน`,
-    `ปีงบประมาณ 2570 มีเพียง ${year2570.length} โครงการ คือโครงการที่ 4 จึงควรพิจารณาความจำเป็นเชิงยุทธศาสตร์แยกต่างหาก`,
-    "โครงการที่ 1 และ 2 เป็นโครงการที่มีแรงผลักจากข้อกำหนดและมาตรฐานภาครัฐ จึงควรจัดเป็นงานเร่งด่วนก่อนงานเสริมอื่น",
-  ];
 }

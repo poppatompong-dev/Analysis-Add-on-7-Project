@@ -1,5 +1,6 @@
 import DashboardApp from "@/components/dashboard/dashboard-app";
-import { filterOptions, getMediaFiles, projects } from "@/lib/data";
+import { filterOptions, projects } from "@/lib/data";
+import { getMediaFiles } from "@/lib/media";
 
 export default function Page() {
   const mediaFiles = getMediaFiles();

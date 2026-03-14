@@ -21,7 +21,7 @@ type DashboardAppProps = {
 };
 
 type ReportView = "executive" | "analysis";
-type ActiveTab = "overview" | "analytics" | "intelligence" | "media" | "reports" | "import" | "faq";
+type ActiveTab = "overview" | "analytics" | "intelligence" | "media" | "reports" | "import" | "faq" | "guide";
 
 const PILLAR_COLORS: Record<string, string> = {
   "Smart Governance": "#38bdf8",
@@ -125,7 +125,7 @@ export default function DashboardApp({ initialProjects, mediaFiles, options, gen
   const TAB_LABELS: Record<ActiveTab, string> = {
     overview: "📊 ภาพรวม", analytics: "📈 วิเคราะห์", intelligence: "🧠 วิเคราะห์เชิงลึก",
     media: "🎥 ศูนย์สื่อ", reports: "📄 รายงาน", import: "📥 นำเข้าข้อมูล",
-    faq: "❓ คำถามที่พบบ่อย",
+    faq: "❓ คำถามที่พบบ่อย", guide: "📖 คู่มือการใช้งาน",
   };
 
   const handleFileImport = async (file: File) => {
@@ -624,6 +624,11 @@ export default function DashboardApp({ initialProjects, mediaFiles, options, gen
           </SectionPanel>
         </div>)}
 
+        {/* ── TAB: Guide ── */}
+        {activeTab === "guide" && (<div id="tabpanel-guide" role="tabpanel" aria-label="คู่มือการใช้งาน">
+          <GuideTab onNavigate={(tab: ActiveTab) => setActiveTab(tab)} />
+        </div>)}
+
         {/* ── Footer ── */}
         <footer className="dashFooter">
           <p className="dashFooterCredit">
@@ -645,6 +650,203 @@ export default function DashboardApp({ initialProjects, mediaFiles, options, gen
 }
 
 /* ── Sub-components ─────────────────────────────────────────── */
+
+function GuideTab({ onNavigate }: { onNavigate: (tab: ActiveTab) => void }) {
+  const steps = [
+    {
+      no: "1",
+      icon: "🔍",
+      title: "เลือกตัวกรองที่ต้องการ",
+      color: "#0369a1",
+      desc: "แผงด้านซ้ายมือคือ 'แผงควบคุมและตัวกรอง' — ใช้เลือกปีงบประมาณ ยุทธศาสตร์ หมวดหมู่ หรือพิมพ์ค้นหาชื่อโครงการ",
+      tips: [
+        "คลิกที่รายการเพื่อเปิด/ปิดการกรอง — รายการที่มีจุดสีน้ำเงินคือ 'เลือกอยู่'",
+        "ปรับแถบ 'งบประมาณ' เพื่อกรองเฉพาะโครงการที่มีงบในช่วงที่ต้องการ",
+        "แถบสีน้ำเงินด้านบนเนื้อหาจะแสดงว่ากำลังกรองอะไรอยู่",
+      ],
+    },
+    {
+      no: "2",
+      icon: "📊",
+      title: "ดูภาพรวมที่แท็บ 'ภาพรวม'",
+      color: "#6d28d9",
+      desc: "แท็บ 'ภาพรวม' แสดงตัวชี้วัดหลัก (KPI) สรุปสำหรับผู้บริหาร แผนภูมิเรดาร์ และตารางโครงการทั้งหมด",
+      tips: [
+        "KPI (Key Performance Indicator) คือตัวชี้วัดผลการดำเนินงาน — ดูได้ตลอดเวลาไม่ว่าจะอยู่แท็บไหน",
+        "คลิกแถวในตารางเพื่อดูรายละเอียดโครงการแบบ Popup",
+        "แผนภูมิเรดาร์ยิ่งสมมาตรและกว้าง = งบกระจายสมดุลใน 6 มิติ",
+      ],
+    },
+    {
+      no: "3",
+      icon: "📈",
+      title: "วิเคราะห์เชิงลึกที่แท็บ 'วิเคราะห์'",
+      color: "#0369a1",
+      desc: "แท็บ 'วิเคราะห์' มีแผนภูมิวงกลม กราฟแท่งงบรายโครงการ แผนที่งบประมาณ (Treemap) และการจำลองสถานการณ์",
+      tips: [
+        "Donut Chart (วงกลม) — ดูว่างบกระจายไปยุทธศาสตร์ใดมากที่สุด",
+        "Treemap — คลิกที่ชื่อโครงการเพื่อดูรายละเอียด พื้นที่ยิ่งกว้าง = งบยิ่งมาก",
+        "ลากสไลด์ 'Scenario' เพื่อจำลองว่าถ้าเพิ่มงบ X% ผลลัพธ์จะเปลี่ยนอย่างไร",
+      ],
+    },
+    {
+      no: "4",
+      icon: "🧠",
+      title: "อ่านข้อมูลเชิงวิเคราะห์",
+      color: "#6d28d9",
+      desc: "แท็บ 'วิเคราะห์เชิงลึก' แสดงประเด็นที่ระบบตรวจพบ เช่น งบกระจุกตัว หมวดหมู่ซ้ำซ้อน หรือโอกาสในการปรับปรุง",
+      tips: [
+        "ป้าย 'ด่วนสูง' (สีแดง) = ประเด็นที่ควรพิจารณาก่อน",
+        "คลิกรหัสโครงการ (เช่น #3) เพื่อเปิดรายละเอียดโครงการนั้น",
+        "ระบบ ไม่ชี้นำ — นำเสนอข้อมูลเชิงสถิติให้ผู้บริหารพิจารณาเท่านั้น",
+      ],
+    },
+    {
+      no: "5",
+      icon: "🎥",
+      title: "ดูสื่อประกอบที่แท็บ 'ศูนย์สื่อ'",
+      color: "#db2777",
+      desc: "ศูนย์สื่อรวบรวมวิดีโอนำเสนอ บทสรุปเสียง (Podcast Brief) รูปภาพ และเอกสารประกอบการพิจารณา",
+      tips: [
+        "กดปุ่ม ▶ เพื่อเล่นวิดีโอหรือเสียงได้โดยตรงในหน้าเว็บ",
+        "เอกสาร .txt จะแสดงเนื้อหาให้อ่านได้ทันที — .pdf กดลิงก์เพื่อเปิด",
+        "ใช้ช่องค้นหาหรือปุ่มกรองประเภทเพื่อหาสื่อที่ต้องการเร็วขึ้น",
+      ],
+    },
+    {
+      no: "6",
+      icon: "📄",
+      title: "ดาวน์โหลดรายงานที่แท็บ 'รายงาน'",
+      color: "#059669",
+      desc: "ระบบสร้างรายงานอัตโนมัติจากข้อมูลที่กรองอยู่ — พร้อมส่งออกเป็น CSV (Excel) และไฟล์รายงาน .txt",
+      tips: [
+        "CSV คือไฟล์ตารางข้อมูล — เปิดได้ใน Microsoft Excel หรือ Google Sheets",
+        "รายงานสรุปผู้บริหาร — ภาพรวมงบ ยุทธศาสตร์ รายชื่อโครงการ",
+        "รายงานวิเคราะห์เชิงลึก — ประเด็นซ้ำซ้อน งบกระจุกตัว ข้อเสนอแนะ",
+      ],
+    },
+  ];
+
+  const glossary = [
+    { term: "KPI", full: "Key Performance Indicator", th: "ตัวชี้วัดผลการดำเนินงาน" },
+    { term: "Treemap", full: "Treemap Chart", th: "แผนที่สัดส่วนงบประมาณ — พื้นที่กว้าง = งบมาก" },
+    { term: "Radar Chart", full: "Radar / Spider Chart", th: "แผนภูมิแมงมุม — ดูความสมดุล 6 มิติ" },
+    { term: "Smart Governance", full: "Smart Governance", th: "การบริหารจัดการอัจฉริยะ" },
+    { term: "Smart Living", full: "Smart Living", th: "การดำรงชีวิตอัจฉริยะ" },
+    { term: "Smart Economy", full: "Smart Economy", th: "เศรษฐกิจอัจฉริยะ" },
+    { term: "Smart People", full: "Smart People", th: "พลเมืองอัจฉริยะ" },
+    { term: "Scenario Simulation", full: "Scenario Simulation", th: "การจำลองสถานการณ์ — ดูผลลัพธ์สมมติเมื่อเพิ่มงบ" },
+    { term: "CSV", full: "Comma-Separated Values", th: "ไฟล์ตารางข้อมูล เปิดได้ใน Excel" },
+    { term: "SDG", full: "Sustainable Development Goals", th: "เป้าหมายการพัฒนาที่ยั่งยืน (UN)" },
+    { term: "Podcast Brief", full: "Audio Summary", th: "บทสรุปในรูปแบบเสียง" },
+  ];
+
+  return (
+    <div style={{display:"flex",flexDirection:"column",gap:"20px"}}>
+      {/* Hero */}
+      <article className="panel glass" style={{borderLeft:"4px solid #0369a1",padding:"28px 30px"}}>
+        <div style={{display:"flex",alignItems:"flex-start",gap:"18px",flexWrap:"wrap"}}>
+          <span style={{fontSize:"3rem",lineHeight:1}}>📖</span>
+          <div style={{flex:1,minWidth:"200px"}}>
+            <h2 style={{margin:"0 0 6px",fontSize:"1.4rem",fontWeight:900,color:"var(--text)"}}>คู่มือการใช้งานระบบ Smart City Intelligence</h2>
+            <p style={{margin:0,color:"var(--muted)",fontSize:"0.92rem",lineHeight:1.6}}>สำหรับผู้บริหารและเจ้าหน้าที่ที่ใช้งานครั้งแรก — อ่านครั้งเดียวเพื่อใช้งานได้ทันที</p>
+          </div>
+          <button type="button" className="button" style={{flexShrink:0}} onClick={()=>onNavigate("overview")}>เริ่มใช้งาน →</button>
+        </div>
+        <div style={{marginTop:"20px",display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:"10px"}}>
+          {[
+            ["📊","7 แท็บหลัก","ครอบคลุมทุกมิติการวิเคราะห์"],
+            ["🔍","กรองข้อมูลได้","ตามปี ยุทธศาสตร์ งบประมาณ"],
+            ["📄","ส่งออกรายงาน","CSV, TXT พร้อมใช้งาน"],
+            ["🎥","สื่อประกอบ","วิดีโอ เสียง รูปภาพ เอกสาร"],
+          ].map(([icon,title,sub])=>(
+            <div key={title as string} className="glassInner" style={{borderRadius:"var(--radius-sm)",padding:"14px",display:"flex",flexDirection:"column",gap:"4px"}}>
+              <span style={{fontSize:"1.5rem"}}>{icon}</span>
+              <strong style={{fontSize:"0.9rem",color:"var(--text)"}}>{title}</strong>
+              <span style={{fontSize:"0.78rem",color:"var(--muted)"}}>{sub}</span>
+            </div>
+          ))}
+        </div>
+      </article>
+
+      {/* Step-by-step */}
+      <article className="panel glass" style={{borderLeft:"4px solid #6d28d9"}}>
+        <div className="sectionHead"><div>
+          <h2 className="sectionTitle">วิธีใช้งานทีละขั้นตอน</h2>
+          <p className="sectionSubtitle">แนะนำลำดับการใช้งานที่เหมาะสมที่สุด</p>
+        </div></div>
+        <div style={{display:"grid",gap:"14px"}}>
+          {steps.map((s) => (
+            <div key={s.no} className="glassInner" style={{borderRadius:"var(--radius)",padding:"18px 20px",borderLeft:`3px solid ${s.color}`}}>
+              <div style={{display:"flex",alignItems:"flex-start",gap:"14px"}}>
+                <div style={{flexShrink:0,width:"36px",height:"36px",borderRadius:"50%",background:s.color,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:900,fontSize:"0.95rem"}}>{s.no}</div>
+                <div style={{flex:1}}>
+                  <div style={{display:"flex",alignItems:"center",gap:"8px",marginBottom:"6px"}}>
+                    <span style={{fontSize:"1.2rem"}}>{s.icon}</span>
+                    <strong style={{fontSize:"1rem",color:"var(--text)"}}>{s.title}</strong>
+                  </div>
+                  <p style={{margin:"0 0 10px",color:"var(--text-2)",fontSize:"0.88rem",lineHeight:1.65}}>{s.desc}</p>
+                  <ul style={{margin:0,paddingLeft:"18px",display:"flex",flexDirection:"column",gap:"4px"}}>
+                    {s.tips.map((tip,i) => (
+                      <li key={i} style={{color:"var(--muted)",fontSize:"0.84rem",lineHeight:1.55}}>{tip}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </article>
+
+      {/* Quick Nav */}
+      <article className="panel glass" style={{borderLeft:"4px solid #059669"}}>
+        <div className="sectionHead"><div>
+          <h2 className="sectionTitle">ไปยังส่วนต่างๆ ได้เลย</h2>
+          <p className="sectionSubtitle">คลิกปุ่มด้านล่างเพื่อเปิดแท็บที่ต้องการ</p>
+        </div></div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:"10px"}}>
+          {([
+            ["overview","📊 ภาพรวม","#0369a1","ดูตัวชี้วัดและตารางโครงการ"],
+            ["analytics","📈 วิเคราะห์","#6d28d9","กราฟวงกลม Treemap Scenario"],
+            ["intelligence","🧠 เชิงลึก","#6d28d9","ประเด็นที่ระบบตรวจพบ"],
+            ["media","🎥 ศูนย์สื่อ","#db2777","วิดีโอ เสียง รูปภาพ เอกสาร"],
+            ["reports","📄 รายงาน","#059669","ส่งออก CSV และรายงาน .txt"],
+            ["import","📥 นำเข้า","#d97706","นำเข้าข้อมูลจากไฟล์ CSV"],
+            ["faq","❓ คำถาม","#0369a1","คำถามที่ผู้บริหารพบบ่อย"],
+          ] as [ActiveTab,string,string,string][]).map(([tab,label,color,desc])=>(
+            <button key={tab} type="button"
+              onClick={()=>onNavigate(tab)}
+              style={{textAlign:"left",padding:"14px 16px",borderRadius:"var(--radius-sm)",border:`1px solid ${color}33`,background:`${color}08`,cursor:"pointer",transition:"150ms ease"}}
+              onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.background=`${color}14`;}}
+              onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.background=`${color}08`;}}>
+              <div style={{fontSize:"1rem",fontWeight:700,color:"var(--text)",marginBottom:"3px"}}>{label}</div>
+              <div style={{fontSize:"0.78rem",color:"var(--muted)"}}>{desc}</div>
+            </button>
+          ))}
+        </div>
+      </article>
+
+      {/* Glossary */}
+      <article className="panel glass" style={{borderLeft:"4px solid #d97706"}}>
+        <div className="sectionHead"><div>
+          <h2 className="sectionTitle">คำศัพท์ที่ควรรู้ (Glossary)</h2>
+          <p className="sectionSubtitle">คำอธิบายศัพท์เทคนิคและภาษาอังกฤษในระบบ</p>
+        </div></div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))",gap:"10px"}}>
+          {glossary.map((g) => (
+            <div key={g.term} className="glassInner" style={{borderRadius:"var(--radius-sm)",padding:"12px 16px"}}>
+              <div style={{display:"flex",alignItems:"baseline",gap:"8px",flexWrap:"wrap",marginBottom:"4px"}}>
+                <strong style={{fontSize:"0.95rem",color:"var(--cyan)"}}>{g.term}</strong>
+                <span style={{fontSize:"0.75rem",color:"var(--muted)"}}>{g.full}</span>
+              </div>
+              <p style={{margin:0,fontSize:"0.86rem",color:"var(--text-2)",lineHeight:1.5}}>{g.th}</p>
+            </div>
+          ))}
+        </div>
+      </article>
+    </div>
+  );
+}
 
 function SectionPanel({ title, subtitle, accent, children }: { title: string; subtitle: string; accent?: string; children: React.ReactNode }) {
   return (

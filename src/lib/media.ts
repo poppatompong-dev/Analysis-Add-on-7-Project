@@ -3,38 +3,36 @@ import path from "path";
 import fs from "fs";
 import type { MediaFile } from "@/types/project";
 
-const candidates = [
-  path.join(process.cwd(), "Source"),
-  path.join(process.cwd(), "..", "Source"),
-  "C:/Users/Patompong.l/Documents/รายงาน ผอ.หนึ่ง/Source",
-];
-export const sourceDir = candidates.find((p) => fs.existsSync(p)) ?? candidates[0];
-
 const videoExt = new Set([".mp4", ".mov", ".avi", ".webm"]);
 const audioExt = new Set([".mp3", ".wav", ".m4a", ".aac"]);
 const imageExt = new Set([".png", ".jpg", ".jpeg", ".webp", ".gif"]);
 const textExt = new Set([".txt", ".md"]);
 const docExt = new Set([".pdf", ".doc", ".docx", ".ppt", ".pptx"]);
 
+function getExtType(ext: string): MediaFile["type"] | null {
+  if (videoExt.has(ext)) return "video";
+  if (audioExt.has(ext)) return "audio";
+  if (imageExt.has(ext)) return "image";
+  if (textExt.has(ext) || docExt.has(ext)) return "document";
+  return null;
+}
+
 export function getMediaFiles(): MediaFile[] {
-  if (!fs.existsSync(sourceDir)) return [];
+  const publicMediaDir = path.join(process.cwd(), "public", "media");
 
-  const items = fs.readdirSync(sourceDir).map<MediaFile | null>((name) => {
+  if (!fs.existsSync(publicMediaDir)) return [];
+
+  const items = fs.readdirSync(publicMediaDir).map<MediaFile | null>((name) => {
     const ext = path.extname(name).toLowerCase();
-    const filePath = path.join(sourceDir, name);
-    const encoded = encodeURIComponent(name);
-
-    let type: MediaFile["type"] | null = null;
-    if (videoExt.has(ext)) type = "video";
-    if (audioExt.has(ext)) type = "audio";
-    if (imageExt.has(ext)) type = "image";
-    if (textExt.has(ext) || docExt.has(ext)) type = "document";
+    const type = getExtType(ext);
     if (!type) return null;
+
+    const encoded = encodeURIComponent(name);
 
     let textContent: string | undefined;
     if (textExt.has(ext)) {
       try {
-        textContent = fs.readFileSync(filePath, "utf-8");
+        textContent = fs.readFileSync(path.join(publicMediaDir, name), "utf-8");
       } catch {
         textContent = undefined;
       }
@@ -45,7 +43,7 @@ export function getMediaFiles(): MediaFile[] {
       ext,
       type,
       textContent,
-      url: `/api/media/${encoded}`,
+      url: `/media/${encoded}`,
     } satisfies MediaFile;
   });
 

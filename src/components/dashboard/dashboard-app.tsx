@@ -147,7 +147,7 @@ export default function DashboardApp({ initialProjects, mediaFiles, options, gen
 
   return (
     <div className={`shell ${modeClass} ${isFullscreen ? "fullscreenMode" : ""}`}>
-      <aside className="sidebar glass">
+      <aside className="sidebar glass" aria-label="แผงควบคุมและตัวกรอง">
         <div className="sidebarLogo">
           <span className="sidebarLogoIcon">🏙️</span>
           <div className="sidebarLogoText">
@@ -220,7 +220,7 @@ export default function DashboardApp({ initialProjects, mediaFiles, options, gen
         </div>
       </aside>
 
-      <main className="content">
+      <main id="main-content" className="content">
         {/* ── Dashboard Header ── */}
         <header className="dashHeader glass">
           <div className="dashHeaderLeft">
@@ -231,7 +231,7 @@ export default function DashboardApp({ initialProjects, mediaFiles, options, gen
           <div className="dashHeaderRight">
             <span className="chip chipCyan">{allProjects.length} โครงการ</span>
             <span className="chip chipAmber">สื่อ {mediaCounts.total} รายการ</span>
-            <button type="button" className="button"
+            <button type="button" className="button" aria-label="ส่งออกข้อมูลโครงการเป็นไฟล์ CSV"
               onClick={() => downloadText("ข้อมูลโครงการ.csv", csvText, "text/csv;charset=utf-8")}>
               ↓ ส่งออก CSV (ไฟล์ตาราง)
             </button>
@@ -267,9 +267,12 @@ export default function DashboardApp({ initialProjects, mediaFiles, options, gen
         </section>
 
         {/* ── Tab Navigation ── */}
-        <nav className="tabBar glass">
+        <nav className="tabBar glass" role="tablist" aria-label="เมนูแท็บหลัก">
           {(Object.keys(TAB_LABELS) as ActiveTab[]).map((tab) => (
             <button key={tab} type="button"
+              role="tab"
+              aria-selected={activeTab === tab}
+              aria-controls={`tabpanel-${tab}`}
               className={`tabBtn ${activeTab===tab?"tabActive":""}`}
               onClick={() => setActiveTab(tab)}>
               {TAB_LABELS[tab]}
@@ -278,7 +281,7 @@ export default function DashboardApp({ initialProjects, mediaFiles, options, gen
         </nav>
 
         {/* ── TAB: Overview ── */}
-        {activeTab === "overview" && (<>
+        {activeTab === "overview" && (<div id="tabpanel-overview" role="tabpanel" aria-label="ภาพรวม"><>
           <section style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"16px"}}>
             <SectionPanel title="สรุปภาพรวมผู้บริหาร" subtitle="จากข้อมูลที่กรองอยู่" accent="#a78bfa">
               <ul className="execSummaryList">{summaryBullets.map((b)=><li key={b}>{b}</li>)}</ul>
@@ -296,20 +299,20 @@ export default function DashboardApp({ initialProjects, mediaFiles, options, gen
               💡 ตารางนี้แสดงเฉพาะโครงการที่ตรงกับตัวกรองด้านซ้าย — ปรับตัวกรองเพื่อเปลี่ยนรายการ
             </div>
             <div style={{overflowX:"auto"}}>
-              <table className="projectTable">
+              <table className="projectTable" role="table" aria-label="ตารางสรุปโครงการ">
                 <thead>
                   <tr>
-                    <th>#</th>
-                    <th>ชื่อโครงการ</th>
-                    <th>งบประมาณ <span className="thHint">(บาท)</span></th>
-                    <th>ปี</th>
-                    <th title="ยุทธศาสตร์เมืองอัจฉริยะ (Smart City Pillar)">ยุทธศาสตร์</th>
-                    <th>หมวดหมู่</th>
+                    <th scope="col">#</th>
+                    <th scope="col">ชื่อโครงการ</th>
+                    <th scope="col">งบประมาณ <span className="thHint">(บาท)</span></th>
+                    <th scope="col">ปี</th>
+                    <th scope="col" title="ยุทธศาสตร์เมืองอัจฉริยะ (Smart City Pillar)">ยุทธศาสตร์</th>
+                    <th scope="col">หมวดหมู่</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredProjects.map((p) => (
-                    <tr key={p.id} onClick={() => setSelectedProject(p)} style={{cursor:"pointer"}}>
+                    <tr key={p.id} onClick={() => setSelectedProject(p)} style={{cursor:"pointer"}} tabIndex={0} onKeyDown={(e)=>{if(e.key==="Enter"||e.key==" ")setSelectedProject(p)}} aria-label={`โครงการ ${p.name}`}>
                       <td style={{color:"var(--cyan)",fontWeight:700}}>{p.id}</td>
                       <td>
                         <div style={{fontWeight:600}}>{p.name}</div>
@@ -326,7 +329,7 @@ export default function DashboardApp({ initialProjects, mediaFiles, options, gen
             </div>
           </SectionPanel>
 
-          <SectionPanel title="ศูนย์สื่อ — ภาพรวม" subtitle={`สื่อประกอบการพิจารณา ทั้งหมด ${mediaCounts.total} รายการ`} accent="#f472b6">
+          <SectionPanel title="ศูนย์สื่อ — ภาพรวม" aria-label="ศูนย์สื่อ" subtitle={`สื่อประกอบการพิจารณา ทั้งหมด ${mediaCounts.total} รายการ`} accent="#f472b6">
             <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:"10px",marginTop:"4px"}}>
               {([["วิดีโอ",mediaCounts.video,"#38bdf8"],["บทสรุปเสียง",mediaCounts.audio,"#a78bfa"],["ภาพประกอบ",mediaCounts.image,"#34d399"],["เอกสาร",mediaCounts.document,"#f59e0b"]] as [string,number,string][]).map(([label,count,color])=>(
                 <div key={label} className="glassInner" style={{borderRadius:"var(--radius-sm)",padding:"16px",display:"flex",flexDirection:"column",gap:"4px"}}>
@@ -339,10 +342,10 @@ export default function DashboardApp({ initialProjects, mediaFiles, options, gen
               <button type="button" className="button" onClick={()=>setActiveTab("media")}>เปิดศูนย์สื่อ →</button>
             </div>
           </SectionPanel>
-        </>)}
+        </></div>)}
 
         {/* ── TAB: Analytics ── */}
-        {activeTab === "analytics" && (<>
+        {activeTab === "analytics" && (<div id="tabpanel-analytics" role="tabpanel" aria-label="วิเคราะห์"><>
           <section style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"16px"}}>
             <SectionPanel title="สัดส่วนงบตามยุทธศาสตร์" subtitle="แผนภูมิวงกลม — สัดส่วนงบแต่ละด้าน" accent="#a78bfa">
               <div className="donutWrap">
@@ -406,10 +409,10 @@ export default function DashboardApp({ initialProjects, mediaFiles, options, gen
             </div>
             <ScenarioChart results={scenarioData} />
           </SectionPanel>
-        </>)}
+        </></div>)}
 
         {/* ── TAB: AI Intelligence ── */}
-        {activeTab === "intelligence" && (
+        {activeTab === "intelligence" && (<div id="tabpanel-intelligence" role="tabpanel" aria-label="วิเคราะห์เชิงลึก">
           <SectionPanel title="สรุปข้อมูลเชิงวิเคราะห์"
             subtitle={`วิเคราะห์เชิงลึก (Data Intelligence) จากโครงการที่กรองอยู่ · ${aiInsights.length} ประเด็น`}
             accent="#6d28d9">
@@ -423,16 +426,18 @@ export default function DashboardApp({ initialProjects, mediaFiles, options, gen
               ))}
             </div>
           </SectionPanel>
-        )}
+        </div>)}
 
         {/* ── TAB: Media ── */}
         {activeTab === "media" && (
+          <div id="tabpanel-media" role="tabpanel" aria-label="ศูนย์สื่อ">
           <SectionPanel title="ศูนย์สื่อประกอบการพิจารณา" subtitle={`${mediaFiles.length} รายการ`} accent="#f472b6">
             <div className="mediaFilterBar">
-              <input className="input" placeholder="ค้นหาชื่อไฟล์..." value={mediaSearch} onChange={(e)=>setMediaSearch(e.target.value)} />
+              <input className="input" placeholder="ค้นหาชื่อไฟล์..." value={mediaSearch} onChange={(e)=>setMediaSearch(e.target.value)} aria-label="ค้นหาชื่อสื่อ" />
               <div className="mediaTypeFilters">
                 {(["all","video","audio","image","document"] as const).map((t)=>(
                   <button key={t} type="button"
+                    aria-pressed={mediaTypeFilter === t}
                     className={`mediaTypeBtn ${mediaTypeFilter===t?"mediaTypeBtnActive":""}`}
                     onClick={()=>setMediaTypeFilter(t)}>
                     {t==="all"?"ทั้งหมด":t==="video"?"วิดีโอ":t==="audio"?"บทสรุปเสียง":t==="image"?"ภาพ":"เอกสาร"}
@@ -490,10 +495,11 @@ export default function DashboardApp({ initialProjects, mediaFiles, options, gen
               </MediaBlock>
             </div>
           </SectionPanel>
+          </div>
         )}
 
         {/* ── TAB: Reports ── */}
-        {activeTab === "reports" && (<>
+        {activeTab === "reports" && (<div id="tabpanel-reports" role="tabpanel" aria-label="รายงาน"><>
           <SectionPanel title="ศูนย์รายงาน" subtitle="ดาวน์โหลดรายงานสำหรับผู้บริหาร" accent="#34d399">
             <div className="reportCards">
               <div className="reportCard glassInner" style={{borderLeftColor:"#38bdf8"}}>
@@ -540,7 +546,7 @@ export default function DashboardApp({ initialProjects, mediaFiles, options, gen
                       <td>{p.name}</td>
                       <td>{formatNumber(p.budget)}</td>
                       <td>{p.year}</td>
-                      <td><span style={{color:PILLAR_COLORS[p.pillar]||"#94a3b8",fontSize:"0.82rem"}}>{p.pillarTh||p.pillar}</span></td>
+                      <td><span style={{color:PILLAR_COLORS[p.pillar] ?? "#94a3b8",fontSize:"0.82rem"}}>{p.pillarTh||p.pillar}</span></td>
                       <td>{p.category}</td>
                     </tr>
                   ))}
@@ -548,10 +554,10 @@ export default function DashboardApp({ initialProjects, mediaFiles, options, gen
               </table>
             </div>
           </SectionPanel>
-        </>)}
+        </></div>)}
 
         {/* ── TAB: Import ── */}
-        {activeTab === "import" && (
+        {activeTab === "import" && (<div id="tabpanel-import" role="tabpanel" aria-label="นำเข้าข้อมูล">
           <SectionPanel title="นำเข้าข้อมูลโครงการ (CSV คือไฟล์ตารางข้อมูล)" subtitle="รองรับหัวคอลัมน์ภาษาไทยและอังกฤษ" accent="#34d399">
             <input ref={fileInputRef} type="file" accept=".csv,text/csv" style={{display:"none"}}
               onChange={(e)=>{const f=e.target.files?.[0];if(f)handleFileImport(f);}} />
@@ -577,10 +583,10 @@ export default function DashboardApp({ initialProjects, mediaFiles, options, gen
 2,โครงการ PDPA,3200000,2567,Smart Governance,ความปลอดภัยข้อมูล`}</pre>
             </div>
           </SectionPanel>
-        )}
+        </div>)}
 
         {/* ── TAB: FAQ ── */}
-        {activeTab === "faq" && (
+        {activeTab === "faq" && (<div id="tabpanel-faq" role="tabpanel" aria-label="คำถามที่พบบ่อย">
           <SectionPanel title="คำถามที่ผู้บริหารพบบ่อย" subtitle="คำถาม-คำตอบเกี่ยวกับข้อมูลและการใช้งานระบบ" accent="#6d28d9">
             <div style={{display:"flex",flexDirection:"column",gap:"12px"}}>
               {([
@@ -616,7 +622,7 @@ export default function DashboardApp({ initialProjects, mediaFiles, options, gen
               ))}
             </div>
           </SectionPanel>
-        )}
+        </div>)}
 
         {/* ── Footer ── */}
         <footer className="dashFooter">
@@ -844,10 +850,10 @@ function ProjectDetailModal({ project: p, onClose }: { project: Project; onClose
 
   return (
     <div className="modalOverlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="modalPanel" role="dialog" aria-modal="true">
+      <div className="modalPanel" role="dialog" aria-modal="true" aria-labelledby="modal-title">
 
         <div className="modalHeader">
-          <h2 className="modalTitle">{p.name}</h2>
+          <h2 className="modalTitle" id="modal-title">{p.name}</h2>
           <button type="button" className="modalClose" onClick={onClose} aria-label="ปิด">✕</button>
         </div>
 

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://nextjs-dashboard-lyart-zeta-20.vercel.app/sitemap.xml

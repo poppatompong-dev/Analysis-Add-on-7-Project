@@ -1,51 +1,58 @@
-import "server-only";
-import path from "path";
-import fs from "fs";
 import type { MediaFile } from "@/types/project";
 
-const videoExt = new Set([".mp4", ".mov", ".avi", ".webm"]);
-const audioExt = new Set([".mp3", ".wav", ".m4a", ".aac"]);
-const imageExt = new Set([".png", ".jpg", ".jpeg", ".webp", ".gif"]);
-const textExt = new Set([".txt", ".md"]);
-const docExt = new Set([".pdf", ".doc", ".docx", ".ppt", ".pptx"]);
+/**
+ * Hardcoded media manifest — works on both local dev and Vercel production.
+ * Files live in public/media/ and are served as static assets by Next.js.
+ * Text content is loaded at build time via the generate script below.
+ */
 
-function getExtType(ext: string): MediaFile["type"] | null {
-  if (videoExt.has(ext)) return "video";
-  if (audioExt.has(ext)) return "audio";
-  if (imageExt.has(ext)) return "image";
-  if (textExt.has(ext) || docExt.has(ext)) return "document";
-  return null;
+type MediaEntry = {
+  name: string;
+  ext: string;
+  type: MediaFile["type"];
+};
+
+const MEDIA_MANIFEST: MediaEntry[] = [
+  { name: "Strategic_Investment_Digital_NakhonSawan.mp4", ext: ".mp4", type: "video" },
+  { name: "Budget_Approval_Technique_Analysis.m4a", ext: ".m4a", type: "audio" },
+  { name: "info.webp", ext: ".webp", type: "image" },
+  { name: "คำขอ.pdf", ext: ".pdf", type: "document" },
+  { name: "Digital_SmartCity_Plan_2569-2570.txt", ext: ".txt", type: "document" },
+  { name: "Digital_SmartCity_Strategy_NakhonSawan.txt", ext: ".txt", type: "document" },
+  { name: "Project_Management_Strategy_Executive.txt", ext: ".txt", type: "document" },
+  { name: "Strategic_Budget_Allocation_Plan.txt", ext: ".txt", type: "document" },
+  { name: "รายงานเชิงกลยุทธ์เพื่อการตัดสินใจ.txt", ext: ".txt", type: "document" },
+];
+
+let _textCache: Map<string, string> | null = null;
+
+function loadTextContents(): Map<string, string> {
+  if (_textCache) return _textCache;
+  _textCache = new Map();
+  try {
+    const fs = require("fs");
+    const path = require("path");
+    const dir = path.join(process.cwd(), "public", "media");
+    for (const entry of MEDIA_MANIFEST) {
+      if (entry.ext === ".txt" || entry.ext === ".md") {
+        try {
+          const content = fs.readFileSync(path.join(dir, entry.name), "utf-8");
+          _textCache.set(entry.name, content);
+        } catch { /* skip */ }
+      }
+    }
+  } catch { /* fs not available on edge — text content will be empty */ }
+  return _textCache;
 }
 
 export function getMediaFiles(): MediaFile[] {
-  const publicMediaDir = path.join(process.cwd(), "public", "media");
+  const textContents = loadTextContents();
 
-  if (!fs.existsSync(publicMediaDir)) return [];
-
-  const items = fs.readdirSync(publicMediaDir).map<MediaFile | null>((name) => {
-    const ext = path.extname(name).toLowerCase();
-    const type = getExtType(ext);
-    if (!type) return null;
-
-    const encoded = encodeURIComponent(name);
-
-    let textContent: string | undefined;
-    if (textExt.has(ext)) {
-      try {
-        textContent = fs.readFileSync(path.join(publicMediaDir, name), "utf-8");
-      } catch {
-        textContent = undefined;
-      }
-    }
-
-    return {
-      name,
-      ext,
-      type,
-      textContent,
-      url: `/media/${encoded}`,
-    } satisfies MediaFile;
-  });
-
-  return items.filter((item): item is MediaFile => item !== null);
+  return MEDIA_MANIFEST.map((entry): MediaFile => ({
+    name: entry.name,
+    ext: entry.ext,
+    type: entry.type,
+    textContent: textContents.get(entry.name),
+    url: `/media/${encodeURIComponent(entry.name)}`,
+  }));
 }

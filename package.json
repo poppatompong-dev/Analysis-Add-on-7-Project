@@ -13,9 +13,11 @@
     "react-dom": "18.2.0"
   },
   "devDependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@types/node": "20.12.12",
     "@types/react": "18.2.66",
     "@types/react-dom": "18.2.22",
+    "sharp": "^0.34.5",
     "typescript": "5.4.5"
   }
 }

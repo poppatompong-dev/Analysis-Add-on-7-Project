@@ -25,11 +25,6 @@ export function getExecutiveSummary(filtered: Project[], allProjects: Project[])
   const avgBudget = filteredBudget / filtered.length;
   const years = [...new Set(filtered.map((p) => p.year))].sort();
 
-  const delayedCount = filtered.filter((p) => p.status === "delayed").length;
-  const atRiskCount = filtered.filter((p) => p.status === "at-risk").length;
-  const completedCount = filtered.filter((p) => p.status === "completed").length;
-  const avgCompletion = filtered.filter((p) => p.completionPct != null).reduce((s, p) => s + (p.completionPct ?? 0), 0) / (filtered.filter((p) => p.completionPct != null).length || 1);
-
   const bullets: string[] = [];
 
   bullets.push(
@@ -53,16 +48,6 @@ export function getExecutiveSummary(filtered: Project[], allProjects: Project[])
     bullets.push(`ครอบคลุม ${years.length} ปีงบประมาณ: ${years.join(", ")}`);
   } else {
     bullets.push(`ปีงบประมาณ ${years[0] ?? "—"}`);
-  }
-
-  if (delayedCount > 0 || atRiskCount > 0) {
-    bullets.push(`โครงการล่าช้า ${delayedCount} รายการ · เสี่ยง ${atRiskCount} รายการ — ต้องการการติดตาม`);
-  }
-  if (completedCount > 0) {
-    bullets.push(`เสร็จสิ้นแล้ว ${completedCount} โครงการ จากทั้งหมด ${filtered.length} ในมุมมองนี้`);
-  }
-  if (filtered.some((p) => p.completionPct != null)) {
-    bullets.push(`ความคืบหน้าเฉลี่ย ${Math.round(avgCompletion)}% ในโครงการที่มีข้อมูล`);
   }
 
   return bullets;

@@ -4,8 +4,8 @@ import { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import { applyFilters } from "@/lib/filters";
 import { buildCsv, buildDeepAnalysis, buildExecutiveReport } from "@/lib/reports";
 import { formatNumber, getExecutiveSummary } from "@/lib/insights";
-import { getKPIData, getRadarData, getAIInsights, getTreemapData, getGanttData, getScenarioSimulation } from "@/lib/data";
-import type { AIInsight, DisplayMode, Filters, GanttRow, KPICard, MediaFile, Project, RadarDimension, ScenarioResult, TreemapNode } from "@/types/project";
+import { getKPIData, getRadarData, getAIInsights, getTreemapData, getScenarioSimulation } from "@/lib/data";
+import type { AIInsight, DisplayMode, Filters, KPICard, MediaFile, Project, RadarDimension, ScenarioResult, TreemapNode } from "@/types/project";
 
 type DashboardAppProps = {
   initialProjects: Project[];
@@ -15,27 +15,19 @@ type DashboardAppProps = {
     pillars: string[];
     categories: string[];
     statuses: string[];
-    districts: string[];
     budgetRange: [number, number];
   };
   generatedAt: string;
 };
 
 type ReportView = "executive" | "analysis";
-type ActiveTab = "overview" | "analytics" | "intelligence" | "media" | "reports" | "import";
+type ActiveTab = "overview" | "analytics" | "intelligence" | "media" | "reports" | "import" | "faq";
 
 const PILLAR_COLORS: Record<string, string> = {
   "Smart Governance": "#38bdf8",
   "Smart Living": "#a78bfa",
   "Smart Economy": "#34d399",
   "Smart People": "#f59e0b",
-};
-
-const STATUS_COLORS: Record<string, string> = {
-  active: "#34d399",
-  completed: "#38bdf8",
-  delayed: "#f87171",
-  "at-risk": "#f59e0b",
 };
 
 const INSIGHT_COLORS: Record<string, string> = {
@@ -52,12 +44,12 @@ export default function DashboardApp({ initialProjects, mediaFiles, options, gen
     pillars: options.pillars,
     categories: options.categories,
     statuses: [],
-    districts: [],
     budgetRange: options.budgetRange,
   };
 
   const [allProjects, setAllProjects] = useState<Project[]>(initialProjects);
   const [filters, setFilters] = useState<Filters>({ ...defaultFilters });
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [reportView, setReportView] = useState<ReportView>("executive");
   const [activeTab, setActiveTab] = useState<ActiveTab>("overview");
   const [displayMode, setDisplayMode] = useState<DisplayMode>("default");
@@ -94,7 +86,6 @@ export default function DashboardApp({ initialProjects, mediaFiles, options, gen
   const radarData = useMemo(() => getRadarData(filteredProjects), [filteredProjects]);
   const aiInsights = useMemo(() => getAIInsights(filteredProjects), [filteredProjects]);
   const treemapData = useMemo(() => getTreemapData(filteredProjects), [filteredProjects]);
-  const ganttData = useMemo(() => getGanttData(filteredProjects), [filteredProjects]);
   const scenarioData = useMemo(() => getScenarioSimulation(filteredProjects, scenarioPct), [filteredProjects, scenarioPct]);
 
   const pillarData = useMemo(() => {
@@ -122,7 +113,7 @@ export default function DashboardApp({ initialProjects, mediaFiles, options, gen
   }), [mediaFiles, mediaSearch, mediaTypeFilter]);
 
   const reportText = reportView === "executive" ? executiveReport : deepAnalysis;
-  const modeClass = displayMode === "dark" ? "modeDark" : displayMode === "presentation" ? "modePresentation" : "";
+  const modeClass = displayMode === "presentation" ? "modePresentation" : "";
   const totalBudget = filteredProjects.reduce((s, p) => s + p.budget, 0);
   const mediaCounts = {
     total: mediaFiles.length,
@@ -132,8 +123,9 @@ export default function DashboardApp({ initialProjects, mediaFiles, options, gen
     document: mediaFiles.filter((m) => m.type === "document").length,
   };
   const TAB_LABELS: Record<ActiveTab, string> = {
-    overview: "ภาพรวม", analytics: "วิเคราะห์", intelligence: "AI Insights",
-    media: "ศูนย์สื่อ", reports: "รายงาน", import: "นำเข้าข้อมูล",
+    overview: "📊 ภาพรวม", analytics: "📈 วิเคราะห์", intelligence: "🧠 วิเคราะห์เชิงลึก",
+    media: "🎥 ศูนย์สื่อ", reports: "📄 รายงาน", import: "📥 นำเข้าข้อมูล",
+    faq: "❓ คำถามที่พบบ่อย",
   };
 
   const handleFileImport = async (file: File) => {
@@ -178,16 +170,6 @@ export default function DashboardApp({ initialProjects, mediaFiles, options, gen
         <FilterChecklist label="หมวดหมู่" options={options.categories} selected={filters.categories}
           onToggle={(v) => setFilters((prev) => ({ ...prev, categories: toggleValue(prev.categories, v, options.categories) }))} />
 
-        {options.statuses.length > 0 && (
-          <FilterChecklist label="สถานะโครงการ" options={options.statuses} selected={filters.statuses}
-            onToggle={(v) => setFilters((prev) => ({ ...prev, statuses: toggleValue(prev.statuses, v, options.statuses) }))} />
-        )}
-
-        {options.districts.length > 0 && (
-          <FilterChecklist label="อำเภอ" options={options.districts} selected={filters.districts}
-            onToggle={(v) => setFilters((prev) => ({ ...prev, districts: toggleValue(prev.districts, v, options.districts) }))} />
-        )}
-
         <div className="sidebarSection">
           <div className="fieldRow">
             <p className="sidebarSectionTitle">ช่วงงบประมาณ</p>
@@ -213,19 +195,22 @@ export default function DashboardApp({ initialProjects, mediaFiles, options, gen
         </div>
 
         <button type="button" className="button buttonSecondary"
-          onClick={() => setFilters({query:"",years:options.years,pillars:options.pillars,categories:options.categories,statuses:[],districts:[],budgetRange:options.budgetRange})}>  
+          onClick={() => setFilters({query:"",years:options.years,pillars:options.pillars,categories:options.categories,statuses:[],budgetRange:options.budgetRange})}>  
           รีเซ็ตตัวกรอง
         </button>
 
         <div className="sidebarSection">
           <p className="sidebarSectionTitle">โหมดการแสดงผล</p>
           <div className="modeButtons">
-            {(["default","dark","presentation"] as DisplayMode[]).map((m) => (
-              <button key={m} type="button" className={`modeBtn ${displayMode===m?"modeBtnActive":""}`} onClick={() => setDisplayMode(m)}>
-                {m==="default"?"ปกติ":m==="dark"?"Dark":"Presentation"}
-              </button>
-            ))}
-            <button type="button" className="modeBtn" onClick={toggleFullscreen}>{isFullscreen?"Exit FS":"Fullscreen"}</button>
+            <button type="button" className={`modeBtn ${displayMode==="default"?"modeBtnActive":""}`} onClick={() => setDisplayMode("default")}>
+              🖥️ ปกติ
+            </button>
+            <button type="button" className={`modeBtn ${displayMode==="presentation"?"modeBtnActive":""}`} onClick={() => setDisplayMode("presentation")}>
+              📽️ Presentation
+            </button>
+            <button type="button" className="modeBtn" style={{gridColumn:"1/-1"}} onClick={toggleFullscreen}>
+              {isFullscreen ? "⊠ ออกจาก Fullscreen" : "⛶ Fullscreen"}
+            </button>
           </div>
         </div>
 
@@ -239,23 +224,45 @@ export default function DashboardApp({ initialProjects, mediaFiles, options, gen
         {/* ── Dashboard Header ── */}
         <header className="dashHeader glass">
           <div className="dashHeaderLeft">
-            <p className="eyebrow">Executive Command Center</p>
-            <h1 className="dashTitle">Nakhon Sawan Smart City Intelligence</h1>
-            <p className="dashSubtitle">ระบบสนับสนุนการตัดสินใจผู้บริหาร — ข้อมูลจริง วิเคราะห์จริง พร้อมส่งออกรายงาน</p>
+            <p className="eyebrow">กองยุทธศาสตร์และงบประมาณ — เทศบาลนครนครสวรรค์</p>
+            <h1 className="dashTitle">ระบบสารสนเทศเมืองอัจฉริยะ นครสวรรค์</h1>
+            <p className="dashSubtitle">ระบบสนับสนุนข้อมูลเชิงสถิติสำหรับผู้บริหาร — ข้อมูลจากโครงการจริง วิเคราะห์ตามมิติที่เกี่ยวข้อง พร้อมส่งออกรายงาน</p>
           </div>
           <div className="dashHeaderRight">
             <span className="chip chipCyan">{allProjects.length} โครงการ</span>
             <span className="chip chipAmber">สื่อ {mediaCounts.total} รายการ</span>
-            <span className="chip chipRose">{kpiData.find((k)=>k.id==="risk")?.value ?? 0} ความเสี่ยงสูง</span>
             <button type="button" className="button"
               onClick={() => downloadText("ข้อมูลโครงการ.csv", csvText, "text/csv;charset=utf-8")}>
-              ↓ CSV
+              ↓ ส่งออก CSV (ไฟล์ตาราง)
             </button>
           </div>
         </header>
 
+        {/* ── Active Filter Banner ── */}
+        {(filters.query.trim() || filters.years.length < options.years.length || filters.pillars.length < options.pillars.length || filters.categories.length < options.categories.length || filters.budgetRange[0] > options.budgetRange[0] || filters.budgetRange[1] < options.budgetRange[1]) && (
+          <div className="filterBanner">
+            <div className="filterBannerLeft">
+              <span className="filterBannerIcon">🔍</span>
+              <span className="filterBannerLabel">กำลังกรองข้อมูล:</span>
+              {filters.query.trim() && <span className="filterTag">คำค้นหา: "{filters.query.trim()}"</span>}
+              {filters.years.length < options.years.length && <span className="filterTag">ปี: {filters.years.join(", ")}</span>}
+              {filters.pillars.length < options.pillars.length && <span className="filterTag">ยุทธศาสตร์: {filters.pillars.length} จาก {options.pillars.length}</span>}
+              {filters.categories.length < options.categories.length && <span className="filterTag">หมวดหมู่: {filters.categories.length} จาก {options.categories.length}</span>}
+              {(filters.budgetRange[0] > options.budgetRange[0] || filters.budgetRange[1] < options.budgetRange[1]) && <span className="filterTag">งบ: {formatNumber(filters.budgetRange[0])}–{formatNumber(filters.budgetRange[1])}</span>}
+            </div>
+            <div className="filterBannerRight">
+              <strong style={{color:"var(--cyan)"}}>{filteredProjects.length}</strong><span style={{color:"var(--muted)"}}> / {allProjects.length} โครงการ</span>
+              <span style={{margin:"0 6px",color:"var(--border)"}}>|</span>
+              <strong>{formatNumber(totalBudget)}</strong> <span style={{color:"var(--muted)"}}>บาท</span>
+            </div>
+          </div>
+        )}
+
         {/* ── KPI Cards (always visible) ── */}
         <section className="kpiGrid">
+          <div className="kpiHint">
+            💡 ตัวชี้วัดหลัก (KPI หรือ Key Performance Indicator คือตัวชี้วัดผลการดำเนินงาน) ด้านล่างคำนวณจากโครงการที่กรองอยู่ — ลองปรับตัวกรองด้านซ้ายเพื่อเปรียบเทียบ
+          </div>
           {kpiData.map((kpi) => <KPICardComponent key={kpi.id} kpi={kpi as KPICard} />)}
         </section>
 
@@ -276,13 +283,52 @@ export default function DashboardApp({ initialProjects, mediaFiles, options, gen
             <SectionPanel title="สรุปภาพรวมผู้บริหาร" subtitle="จากข้อมูลที่กรองอยู่" accent="#a78bfa">
               <ul className="execSummaryList">{summaryBullets.map((b)=><li key={b}>{b}</li>)}</ul>
             </SectionPanel>
-            <SectionPanel title="Smart City Radar" subtitle="ดัชนีความสมดุล 6 มิติ" accent="#38bdf8">
+            <SectionPanel title="แผนภูมิเรดาร์เมืองอัจฉริยะ" subtitle="ดัชนีความสมดุล 6 มิติ (Smart City Radar)" accent="#38bdf8">
+              <div className="sectionHint">
+                💡 <strong>แผนภูมิเรดาร์</strong> (หรือ Radar Chart) แสดงคะแนนความสมดุลของโครงการใน 6 ด้าน — ยิ่งพื้นที่กว้างและสมมาตร ยิ่งแสดงถึงการกระจายงบที่สมดุล
+              </div>
               <RadarChart data={radarData} />
             </SectionPanel>
           </section>
-          <SectionPanel title="ศูนย์สื่อ — ภาพรวม" subtitle={`ไฟล์ทั้งหมด ${mediaCounts.total} รายการ`} accent="#f472b6">
+          {/* ── ตารางสรุปโครงการ (ข้อมูลที่กรองอยู่) ── */}
+          <SectionPanel title="ตารางสรุปโครงการ" subtitle={`แสดง ${filteredProjects.length} โครงการจากทั้งหมด ${allProjects.length} โครงการ — คลิกแถวเพื่อดูรายละเอียด`} accent="#0369a1">
+            <div className="sectionHint">
+              💡 ตารางนี้แสดงเฉพาะโครงการที่ตรงกับตัวกรองด้านซ้าย — ปรับตัวกรองเพื่อเปลี่ยนรายการ
+            </div>
+            <div style={{overflowX:"auto"}}>
+              <table className="projectTable">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>ชื่อโครงการ</th>
+                    <th>งบประมาณ <span className="thHint">(บาท)</span></th>
+                    <th>ปี</th>
+                    <th title="ยุทธศาสตร์เมืองอัจฉริยะ (Smart City Pillar)">ยุทธศาสตร์</th>
+                    <th>หมวดหมู่</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredProjects.map((p) => (
+                    <tr key={p.id} onClick={() => setSelectedProject(p)} style={{cursor:"pointer"}}>
+                      <td style={{color:"var(--cyan)",fontWeight:700}}>{p.id}</td>
+                      <td>
+                        <div style={{fontWeight:600}}>{p.name}</div>
+                        {p.description && <div style={{fontSize:"0.78rem",color:"var(--muted)",marginTop:"2px",maxWidth:"340px",lineHeight:1.4}}>{p.description.slice(0, 80)}{p.description.length > 80 ? "…" : ""}</div>}
+                      </td>
+                      <td style={{fontWeight:700,whiteSpace:"nowrap"}}>{formatNumber(p.budget)}</td>
+                      <td>{p.year}</td>
+                      <td><span style={{color:PILLAR_COLORS[p.pillar] ?? "#94a3b8",fontWeight:600}}>{p.pillarTh || p.pillar}</span></td>
+                      <td>{p.category}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </SectionPanel>
+
+          <SectionPanel title="ศูนย์สื่อ — ภาพรวม" subtitle={`สื่อประกอบการพิจารณา ทั้งหมด ${mediaCounts.total} รายการ`} accent="#f472b6">
             <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:"10px",marginTop:"4px"}}>
-              {([["วิดีโอ",mediaCounts.video,"#38bdf8"],["เสียง",mediaCounts.audio,"#a78bfa"],["ภาพ",mediaCounts.image,"#34d399"],["เอกสาร",mediaCounts.document,"#f59e0b"]] as [string,number,string][]).map(([label,count,color])=>(
+              {([["วิดีโอ",mediaCounts.video,"#38bdf8"],["บทสรุปเสียง",mediaCounts.audio,"#a78bfa"],["ภาพประกอบ",mediaCounts.image,"#34d399"],["เอกสาร",mediaCounts.document,"#f59e0b"]] as [string,number,string][]).map(([label,count,color])=>(
                 <div key={label} className="glassInner" style={{borderRadius:"var(--radius-sm)",padding:"16px",display:"flex",flexDirection:"column",gap:"4px"}}>
                   <strong style={{fontSize:"1.8rem",color}}>{count}</strong>
                   <span style={{color:"var(--muted)",fontSize:"0.85rem"}}>{label}</span>
@@ -298,7 +344,7 @@ export default function DashboardApp({ initialProjects, mediaFiles, options, gen
         {/* ── TAB: Analytics ── */}
         {activeTab === "analytics" && (<>
           <section style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"16px"}}>
-            <SectionPanel title="สัดส่วนงบตามยุทธศาสตร์" subtitle="Donut chart" accent="#a78bfa">
+            <SectionPanel title="สัดส่วนงบตามยุทธศาสตร์" subtitle="แผนภูมิวงกลม — สัดส่วนงบแต่ละด้าน" accent="#a78bfa">
               <div className="donutWrap">
                 <svg viewBox="0 0 120 120" className="donutChart">
                   <circle cx="60" cy="60" r="45" className="donutTrack" />
@@ -308,6 +354,9 @@ export default function DashboardApp({ initialProjects, mediaFiles, options, gen
                   ))}
                 </svg>
                 <div className="donutCenter"><strong>{formatNumber(totalBudget)}</strong><span>บาท</span></div>
+              </div>
+              <div className="sectionHint" style={{margin:"10px 0"}}>
+                💡 <strong>แผนภูมิวงกลม</strong> (หรือ Donut Chart) แสดงว่างบรวมกระจายไปในยุทธศาสตร์ใดมากที่สุด — ถ้าสีใดครอบงำเกินครึ่ง แสดงว่างบอาจกระจุกตัว
               </div>
               <div className="legendList">
                 {pillarData.map((s)=>(
@@ -319,29 +368,36 @@ export default function DashboardApp({ initialProjects, mediaFiles, options, gen
                 ))}
               </div>
             </SectionPanel>
-            <SectionPanel title="งบประมาณรายโครงการ" subtitle="Top 10 เรียงจากมากไปน้อย" accent="#38bdf8">
+            <SectionPanel title="งบประมาณรายโครงการ" subtitle="10 อันดับแรก เรียงจากมากไปน้อย — คลิกเพื่อดูรายละเอียด" accent="#38bdf8">
               <div className="barList">
                 {projectBars.slice(0,10).map((p)=>(
-                  <div key={p.id} className="barItem">
+                  <div key={p.id} className="barItem" style={{cursor:"pointer"}} onClick={()=>setSelectedProject(p)}>
                     <div className="barHeader">
-                      <span>#{p.id} {p.name.length>28?p.name.slice(0,28)+"…":p.name}</span>
+                      <span style={{color:"var(--cyan)",fontWeight:600}}>#{p.id}</span>
+                      <span style={{flex:1,margin:"0 8px",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name.length>28?p.name.slice(0,28)+"…":p.name}</span>
                       <strong>{formatNumber(p.budget)}</strong>
                     </div>
                     <div className="barTrack">
-                      <div className="barFill" style={{width:`${p.width}%`,background:PILLAR_COLORS[p.pillar]||"#38bdf8"}} />
+                      <div className="barFill" style={{width:`${p.width}%`,background:PILLAR_COLORS[p.pillar]||"#0369a1"}} />
                     </div>
                   </div>
                 ))}
               </div>
             </SectionPanel>
           </section>
-          <SectionPanel title="Budget Treemap" subtitle="การกระจายงบตามยุทธศาสตร์และโครงการ" accent="#38bdf8">
-            <TreemapChart nodes={treemapData} />
+          <SectionPanel title="แผนที่งบประมาณ (Treemap)" subtitle="แสดงสัดส่วนงบของแต่ละยุทธศาสตร์และโครงการภายใต้ — คลิกเพื่อดูรายละเอียด" accent="#0369a1">
+            <div className="sectionHint">
+              💡 <strong>Treemap</strong> (แผนที่สัดส่วน) แสดงว่างบแต่ละยุทธศาสตร์กระจายตัวอย่างไร — <strong>พื้นที่ยิ่งกว้าง = งบยิ่งมาก</strong> คลิกที่ชื่อโครงการเพื่อดูรายละเอียด
+            </div>
+            <TreemapChart nodes={treemapData} onCellClick={(name)=>{
+              const found = filteredProjects.find((p)=>p.name===name || p.category===name);
+              if(found) setSelectedProject(found);
+            }} />
           </SectionPanel>
-          <SectionPanel title="แผนภูมิ Gantt" subtitle="ความคืบหน้าตามแผนงาน" accent="#f59e0b" >
-            <GanttChart rows={ganttData} />
-          </SectionPanel>
-          <SectionPanel title={`Scenario Simulation — งบเพิ่ม ${scenarioPct}%`} subtitle="คาดการณ์ผลลัพธ์" accent="#34d399">
+          <SectionPanel title={`จำลองสถานการณ์ — งบเพิ่ม ${scenarioPct}%`} subtitle="จำลองผลลัพธ์หากปรับเพิ่มงบในแต่ละยุทธศาสตร์ (Scenario Simulation)" accent="#34d399">
+            <div className="sectionHint">
+              💡 <strong>การจำลองสถานการณ์</strong> (Scenario Simulation) ช่วยให้ผู้บริหารเห็นภาพว่า หากเพิ่มงบในแต่ละยุทธศาสตร์ คะแนนประโยชน์คาดการณ์ (หรือ Benefit Score) จะเปลี่ยนแปลงอย่างไร — ใช้สไลด์ด้านล่างเพื่อปรับเปอร์เซ็นต์งบที่เพิ่ม
+            </div>
             <div style={{display:"flex",alignItems:"center",gap:"14px",marginBottom:"16px"}}>
               <span style={{fontSize:"0.86rem",fontWeight:600}}>เพิ่มงบ:</span>
               <input type="range" min={5} max={50} step={5} value={scenarioPct}
@@ -354,11 +410,17 @@ export default function DashboardApp({ initialProjects, mediaFiles, options, gen
 
         {/* ── TAB: AI Intelligence ── */}
         {activeTab === "intelligence" && (
-          <SectionPanel title="AI Decision Intelligence"
-            subtitle={`${aiInsights.filter((i)=>i.urgency==="high").length} ประเด็นด่วน · ${aiInsights.length} ประเด็นทั้งหมด`}
-            accent="#f87171">
+          <SectionPanel title="สรุปข้อมูลเชิงวิเคราะห์"
+            subtitle={`วิเคราะห์เชิงลึก (Data Intelligence) จากโครงการที่กรองอยู่ · ${aiInsights.length} ประเด็น`}
+            accent="#6d28d9">
             <div className="insightGrid">
-              {aiInsights.map((ins,idx)=><AIInsightCard key={idx} insight={ins} />)}
+              {aiInsights.map((ins,idx)=>(
+                <AIInsightCard key={idx} insight={ins}
+                  onProjectClick={(pid)=>{
+                    const found = filteredProjects.find((p)=>p.id===pid);
+                    if(found) setSelectedProject(found);
+                  }} />
+              ))}
             </div>
           </SectionPanel>
         )}
@@ -373,7 +435,7 @@ export default function DashboardApp({ initialProjects, mediaFiles, options, gen
                   <button key={t} type="button"
                     className={`mediaTypeBtn ${mediaTypeFilter===t?"mediaTypeBtnActive":""}`}
                     onClick={()=>setMediaTypeFilter(t)}>
-                    {t==="all"?"ทั้งหมด":t==="video"?"วิดีโอ":t==="audio"?"เสียง":t==="image"?"ภาพ":"เอกสาร"}
+                    {t==="all"?"ทั้งหมด":t==="video"?"วิดีโอ":t==="audio"?"บทสรุปเสียง":t==="image"?"ภาพ":"เอกสาร"}
                   </button>
                 ))}
               </div>
@@ -382,7 +444,7 @@ export default function DashboardApp({ initialProjects, mediaFiles, options, gen
               <MediaBlock title="วิดีโอ" items={filteredMedia.filter((m)=>m.type==="video")}>
                 {(m)=><video className="mediaPlayer" controls src={m.url} />}
               </MediaBlock>
-              <MediaBlock title="เสียง" items={filteredMedia.filter((m)=>m.type==="audio")}>
+              <MediaBlock title="บทสรุปเสียง (Podcast Brief)" items={filteredMedia.filter((m)=>m.type==="audio")}>
                 {(m)=><audio className="audioPlayer" controls src={m.url} />}
               </MediaBlock>
               <MediaBlock title="ภาพ" items={filteredMedia.filter((m)=>m.type==="image")}>
@@ -390,13 +452,40 @@ export default function DashboardApp({ initialProjects, mediaFiles, options, gen
               </MediaBlock>
               <MediaBlock title="เอกสาร" items={filteredMedia.filter((m)=>m.type==="document")}>
                 {(m)=>(
-                  <div className="docCard">
-                    <div className="docHeader">
-                      <strong style={{fontSize:"0.86rem"}}>{m.name}</strong>
-                      <a href={m.url} target="_blank" rel="noreferrer">เปิดไฟล์</a>
+                  m.textContent ? (
+                    <div className="txtDocCard">
+                      <div className="txtDocHeader">
+                        <div style={{display:"flex",alignItems:"center",gap:"8px"}}>
+                          <span style={{fontSize:"1.4rem"}}>📄</span>
+                          <div>
+                            <strong style={{fontSize:"0.92rem",display:"block"}}>{m.name.replace(/\.[^.]+$/, "")}</strong>
+                            <span style={{fontSize:"0.78rem",color:"var(--muted)"}}>{m.ext.toUpperCase()} · {m.textContent.length.toLocaleString()} ตัวอักษร</span>
+                          </div>
+                        </div>
+                        <a href={m.url} target="_blank" rel="noreferrer" className="button buttonSecondary" style={{fontSize:"0.8rem",padding:"6px 14px"}}>↓ ดาวน์โหลด</a>
+                      </div>
+                      <div className="txtDocBody">
+                        {m.textContent.split("\n").map((line, i) => {
+                          const trimmed = line.trim();
+                          if (!trimmed) return <div key={i} style={{height:"8px"}} />;
+                          if (/^[═=─-]{3,}/.test(trimmed)) return <hr key={i} className="txtDocDivider" />;
+                          if (/^\d+\.\s/.test(trimmed) || (/^[A-Z]/.test(trimmed) && trimmed.length < 60))
+                            return <h4 key={i} className="txtDocHeading">{trimmed}</h4>;
+                          if (/^\s{2,}[\-•·]/.test(line) || /^\s{2,}-/.test(line))
+                            return <div key={i} className="txtDocBullet">{trimmed}</div>;
+                          return <p key={i} className="txtDocPara">{trimmed}</p>;
+                        })}
+                      </div>
                     </div>
-                    {m.textContent?<pre className="docPreview">{m.textContent.slice(0,1600)}</pre>:<p className="docPlaceholder">เปิดได้จากลิงก์ด้านบน</p>}
-                  </div>
+                  ) : (
+                    <div className="docCard">
+                      <div className="docHeader">
+                        <strong style={{fontSize:"0.86rem"}}>{m.name}</strong>
+                        <a href={m.url} target="_blank" rel="noreferrer">เปิดไฟล์</a>
+                      </div>
+                      <p className="docPlaceholder">เปิดได้จากลิงก์ด้านบน</p>
+                    </div>
+                  )
                 )}
               </MediaBlock>
             </div>
@@ -408,10 +497,10 @@ export default function DashboardApp({ initialProjects, mediaFiles, options, gen
           <SectionPanel title="ศูนย์รายงาน" subtitle="ดาวน์โหลดรายงานสำหรับผู้บริหาร" accent="#34d399">
             <div className="reportCards">
               <div className="reportCard glassInner" style={{borderLeftColor:"#38bdf8"}}>
-                <h4>CSV ข้อมูลดิบ</h4>
-                <p>ส่งต่อทีมวิเคราะห์หรือเปิดใน Excel</p>
+                <h4>ไฟล์ตาราง (CSV)</h4>
+                <p>CSV คือไฟล์ข้อมูลแบบตาราง — ส่งต่อทีมวิเคราะห์หรือเปิดใน Excel</p>
                 <button type="button" className="button buttonSuccess"
-                  onClick={()=>downloadText("ข้อมูลโครงการ.csv",csvText,"text/csv;charset=utf-8")}>↓ ดาวน์โหลด CSV</button>
+                  onClick={()=>downloadText("ข้อมูลโครงการ.csv",csvText,"text/csv;charset=utf-8")}>↓ ดาวน์โหลดไฟล์ตาราง</button>
               </div>
               <div className="reportCard glassInner" style={{borderLeftColor:"#a78bfa"}}>
                 <h4>รายงานสรุปผู้บริหาร</h4>
@@ -443,21 +532,16 @@ export default function DashboardApp({ initialProjects, mediaFiles, options, gen
                 <thead><tr>
                   <th>รหัส</th><th>ชื่อโครงการ</th><th>งบประมาณ</th>
                   <th>ปีงบฯ</th><th>ยุทธศาสตร์</th><th>หมวดหมู่</th>
-                  <th>สถานะ</th><th>ความคืบหน้า</th>
                 </tr></thead>
                 <tbody>
                   {filteredProjects.map((p)=>(
-                    <tr key={p.id}>
+                    <tr key={p.id} onClick={()=>setSelectedProject(p)}>
                       <td>{p.id}</td>
                       <td>{p.name}</td>
                       <td>{formatNumber(p.budget)}</td>
                       <td>{p.year}</td>
                       <td><span style={{color:PILLAR_COLORS[p.pillar]||"#94a3b8",fontSize:"0.82rem"}}>{p.pillarTh||p.pillar}</span></td>
                       <td>{p.category}</td>
-                      <td>{p.status&&<span className={`statusBadge ${p.status==="active"?"statusActive":p.status==="completed"?"statusCompleted":p.status==="delayed"?"statusDelayed":"statusAtRisk"}`}>
-                        {p.status==="active"?"ดำเนินการ":p.status==="completed"?"เสร็จแล้ว":p.status==="delayed"?"ล่าช้า":"เสี่ยง"}
-                      </span>}</td>
-                      <td>{p.completionPct!=null?`${p.completionPct}%`:"—"}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -468,7 +552,7 @@ export default function DashboardApp({ initialProjects, mediaFiles, options, gen
 
         {/* ── TAB: Import ── */}
         {activeTab === "import" && (
-          <SectionPanel title="นำเข้าข้อมูลโครงการ (CSV)" subtitle="รองรับหัวคอลัมน์ภาษาไทยและอังกฤษ" accent="#34d399">
+          <SectionPanel title="นำเข้าข้อมูลโครงการ (CSV คือไฟล์ตารางข้อมูล)" subtitle="รองรับหัวคอลัมน์ภาษาไทยและอังกฤษ" accent="#34d399">
             <input ref={fileInputRef} type="file" accept=".csv,text/csv" style={{display:"none"}}
               onChange={(e)=>{const f=e.target.files?.[0];if(f)handleFileImport(f);}} />
             <div className={`dropZone ${isDragging?"dropZoneActive":""}`}
@@ -478,7 +562,7 @@ export default function DashboardApp({ initialProjects, mediaFiles, options, gen
               onDrop={(e)=>{e.preventDefault();setIsDragging(false);const f=e.dataTransfer.files[0];if(f)handleFileImport(f);}}>
               <div className="dropZoneIcon">📂</div>
               <p className="dropZoneText">คลิกหรือลากไฟล์ CSV มาวางที่นี่</p>
-              <p className="dropZoneSubtext">id · ชื่อโครงการ · งบประมาณ · ปีงบประมาณ · ยุทธศาสตร์ · สถานะ · ความคืบหน้า · อำเภอ</p>
+              <p className="dropZoneSubtext">id · ชื่อโครงการ · งบประมาณ · ปีงบประมาณ · ยุทธศาสตร์ · หมวดหมู่</p>
             </div>
             {importStatus&&(
               <div className="importResult">
@@ -488,14 +572,68 @@ export default function DashboardApp({ initialProjects, mediaFiles, options, gen
             )}
             <div style={{marginTop:"20px"}}>
               <p className="sidebarSectionTitle" style={{marginBottom:"8px"}}>ตัวอย่างรูปแบบ CSV</p>
-              <pre className="reportPreviewBox" style={{maxHeight:"140px"}}>{`id,ชื่อโครงการ,งบประมาณ (บาท),ปีงบประมาณ,ยุทธศาสตร์ (en),หมวดหมู่,สถานะ,ความคืบหน้า,อำเภอ
-1,โครงการระบบไซเบอร์,5000000,2567,Smart Governance,เครือข่ายไซเบอร์,active,60,เมือง
-2,โครงการ PDPA,3200000,2567,Smart Governance,ความปลอดภัยข้อมูล,at-risk,40,เมือง`}</pre>
+              <pre className="reportPreviewBox" style={{maxHeight:"140px"}}>{`id,ชื่อโครงการ,งบประมาณ (บาท),ปีงบประมาณ,ยุทธศาสตร์ (en),หมวดหมู่
+1,โครงการระบบไซเบอร์,5000000,2567,Smart Governance,เครือข่ายไซเบอร์
+2,โครงการ PDPA,3200000,2567,Smart Governance,ความปลอดภัยข้อมูล`}</pre>
             </div>
           </SectionPanel>
         )}
 
+        {/* ── TAB: FAQ ── */}
+        {activeTab === "faq" && (
+          <SectionPanel title="คำถามที่ผู้บริหารพบบ่อย" subtitle="คำถาม-คำตอบเกี่ยวกับข้อมูลและการใช้งานระบบ" accent="#6d28d9">
+            <div style={{display:"flex",flexDirection:"column",gap:"12px"}}>
+              {([
+                {q:"ข้อมูลในระบบนี้มาจากแหล่งใด?", a:"ข้อมูลโครงการทั้งหมดถูกนำเข้าจากฐานข้อมูลโครงการของกองยุทธศาสตร์และงบประมาณ เทศบาลนครนครสวรรค์ โดยสามารถนำเข้าเพิ่มเติมผ่าน CSV ได้ที่แท็บ 'นำเข้าข้อมูล'"},
+                {q:"งบประมาณที่แสดงเป็นงบอนุมัติหรืองบเบิกจ่ายจริง?", a:"ตัวเลขงบประมาณเป็น งบตั้งไว้ (Planned Budget) ตามแผนที่ได้รับอนุมัติ ยังไม่ใช่ตัวเลขเบิกจ่ายจริง"},
+                {q:"ยุทธศาสตร์เมืองอัจฉริยะ (Smart City) แบ่งเป็นกี่ด้าน?", a:"แบ่งเป็น 4 ด้านหลัก ได้แก่ Smart Governance (การบริหารจัดการอัจฉริยะ), Smart Living (การดำรงชีวิตอัจฉริยะ), Smart Economy (เศรษฐกิจอัจฉริยะ) และ Smart People (พลเมืองอัจฉริยะ) โดยสามารถดูสัดส่วนงบได้ในแท็บ 'วิเคราะห์'"},
+                {q:"วิเคราะห์เชิงลึก (Data Intelligence) วิเคราะห์อย่างไร?", a:"ระบบวิเคราะห์จากข้อมูลโครงการที่นำเข้า เช่น งบที่กระจุกตัว หมวดหมู่ซ้ำซ้อน และความสมดุลระหว่างยุทธศาสตร์ โดย ไม่มีการชี้นำ แต่นำเสนอข้อมูลเชิงสถิติเพื่อประกอบการพิจารณา"},
+                {q:"สถานะ 'ต้องทบทวน' หมายความว่าอย่างไร?", a:"หมายถึงโครงการที่มีข้อมูลบ่งชี้ว่าควรพิจารณาทบทวนรายละเอียด เช่น งบประมาณสูงกว่าค่าเฉลี่ยของหมวดเดียวกัน หรือเป้าหมายอาจทับซ้อนกับโครงการอื่น ไม่ได้หมายความว่ามีปัญหา"},
+                {q:"สามารถส่งออกข้อมูลในรูปแบบใดได้บ้าง?", a:"รองรับ 3 รูปแบบ: CSV (สำหรับ Excel), รายงานสรุปผู้บริหาร (.txt) และรายงานวิเคราะห์เชิงลึก (.txt) ดูได้ที่แท็บ 'รายงาน'"},
+                {q:"ข้อมูลสื่อ (วิดีโอ, บทสรุปเสียง, รูปภาพ) คืออะไร?", a:"เป็นสื่อประกอบการพิจารณาที่ทีมงานจัดทำขึ้น เช่น บทสรุปเสียง (Podcast Brief คือสรุปข้อมูลด้วยเสียง), วิดีโอนำเสนอ และภาพประกอบโครงการ สามารถเปิดดูได้ที่แท็บ 'ศูนย์สื่อ'"},
+                {q:"ระบบนี้มีการชี้นำการตัดสินใจหรือไม่?", a:"ไม่มี — ระบบนี้ออกแบบมาเพื่อนำเสนอข้อมูลเชิงสถิติในหลายมิติประกอบการพิจารณาของผู้บริหารเท่านั้น ไม่มีการให้คำแนะนำเชิงนโยบายหรือชี้นำทิศทางการตัดสินใจ"},
+              ]).map((item, idx) => (
+                <details key={idx} style={{
+                  borderRadius:"12px", border:"1px solid var(--border)",
+                  background:"rgba(248,252,255,0.90)", overflow:"hidden"
+                }}>
+                  <summary style={{
+                    padding:"14px 18px", cursor:"pointer", fontWeight:700, fontSize:"0.93rem",
+                    color:"var(--text)", display:"flex", alignItems:"center", gap:"10px",
+                    listStyle:"none",
+                  }}>
+                    <span style={{color:"var(--cyan)",fontSize:"1.1rem",flexShrink:0}}>Q</span>
+                    {item.q}
+                  </summary>
+                  <div style={{
+                    padding:"0 18px 16px", color:"var(--text-2)", fontSize:"0.88rem", lineHeight:1.7,
+                    borderTop:"1px solid var(--border)", marginTop:"0", paddingTop:"14px"
+                  }}>
+                    <span style={{color:"var(--violet)",fontWeight:700,marginRight:"6px"}}>A</span>
+                    {item.a}
+                  </div>
+                </details>
+              ))}
+            </div>
+          </SectionPanel>
+        )}
+
+        {/* ── Footer ── */}
+        <footer className="dashFooter">
+          <p className="dashFooterCredit">
+            🏙️ <strong>Smart City Intelligence Dashboard</strong> — พัฒนาโดย <strong>นักวิชาการคอมพิวเตอร์</strong> กองยุทธศาสตร์และงบประมาณ เทศบาลนครนครสวรรค์
+          </p>
+          <p className="dashFooterSlogan">
+            "Data drives decisions — ข้อมูลนำการตัดสินใจ เมืองอัจฉริยะเริ่มต้นที่ข้อมูลที่ดี"
+          </p>
+        </footer>
+
       </main>
+
+      {/* ── Project Detail Modal ── */}
+      {selectedProject && (
+        <ProjectDetailModal project={selectedProject} onClose={()=>setSelectedProject(null)} />
+      )}
     </div>
   );
 }
@@ -581,26 +719,35 @@ function RadarChart({ data }: { data: RadarDimension[] }) {
   );
 }
 
-function AIInsightCard({ insight }: { insight: AIInsight }) {
+function AIInsightCard({ insight, onProjectClick }: { insight: AIInsight; onProjectClick?: (id: number) => void }) {
   const color = INSIGHT_COLORS[insight.type] ?? "#94a3b8";
   const typeLabel: Record<string,string> = {warning:"⚠️ คำเตือน",risk:"🔴 ความเสี่ยง",opportunity:"✅ โอกาส",info:"ℹ️ ข้อมูล"};
   const urgencyClass = insight.urgency==="high"?"urgencyHigh":insight.urgency==="medium"?"urgencyMed":"urgencyLow";
   return (
-    <div className="insightCard glassInner" style={{borderLeft:`4px solid ${color}`}}>
+    <div className="insightCard glassInner" style={{borderLeft:`3px solid ${color}33`,background:`${color}06`}}>
       <div className="insightTop">
         <span className="insightTypeLabel" style={{color}}>{typeLabel[insight.type]}</span>
         <span className={`urgencyBadge ${urgencyClass}`}>{insight.urgency==="high"?"ด่วน":insight.urgency==="medium"?"ติดตาม":"ข้อมูล"}</span>
       </div>
       <h4 className="insightTitle">{insight.title}</h4>
       <p className="insightDesc">{insight.description}</p>
-      {insight.affectedProjects&&(
-        <div className="insightRefs">{insight.affectedProjects.map((id)=><span key={id} className="chip" style={{fontSize:"0.76rem",padding:"3px 7px"}}>#{id}</span>)}</div>
+      {insight.affectedProjects && insight.affectedProjects.length > 0 && (
+        <div className="insightRefs">
+          {insight.affectedProjects.map((id)=>(
+            <button key={id} type="button"
+              className="chip chipCyan"
+              style={{fontSize:"0.76rem",padding:"3px 8px",cursor:onProjectClick?"pointer":"default",border:"none"}}
+              onClick={()=>onProjectClick?.(id)}>
+              โครงการ #{id}
+            </button>
+          ))}
+        </div>
       )}
     </div>
   );
 }
 
-function TreemapChart({ nodes }: { nodes: TreemapNode[] }) {
+function TreemapChart({ nodes, onCellClick }: { nodes: TreemapNode[]; onCellClick?: (label: string) => void }) {
   if (!nodes.length) return <div className="emptyState">ไม่มีข้อมูล</div>;
   return (
     <div className="treemapWrap">
@@ -609,43 +756,17 @@ function TreemapChart({ nodes }: { nodes: TreemapNode[] }) {
           <div className="treemapPillarLabel" style={{color:node.color}}>{node.label}</div>
           <div className="treemapChildren">
             {(node.children??[]).map((child)=>(
-              <div key={child.label} className="treemapCell" style={{background:`${node.color}1e`,borderColor:`${node.color}3a`,height:`${child.height??20}px`}}>
-                <span className="treemapCellName">{child.label}</span>
+              <div key={child.label} className="treemapCell"
+                style={{background:`${node.color}1e`,borderColor:`${node.color}3a`,height:`${child.height??20}px`,cursor:onCellClick?"pointer":"default"}}
+                onClick={()=>onCellClick?.(child.label)}
+                title={onCellClick ? `คลิกดูรายละเอียด: ${child.label}` : undefined}>
+                <span className="treemapCellName">{child.label.length > 22 ? child.label.slice(0, 22) + "…" : child.label}</span>
                 <span className="treemapCellVal">{((child.value??0)/1_000_000).toFixed(1)}M</span>
               </div>
             ))}
           </div>
         </div>
       ))}
-    </div>
-  );
-}
-
-function GanttChart({ rows }: { rows: GanttRow[] }) {
-  const MONTHS = ["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
-  return (
-    <div className="ganttWrap">
-      <div className="ganttHeader">
-        <div className="ganttLabel" style={{fontSize:"0.75rem",color:"var(--muted)"}}>โครงการ</div>
-        <div className="ganttHeaderMonths">{MONTHS.map((m,i)=><div key={i} className="ganttMonth">{m}</div>)}</div>
-      </div>
-      {rows.map((row)=>{
-        const sColor = STATUS_COLORS[row.status]??"#94a3b8";
-        const pColor = PILLAR_COLORS[row.pillar]??"#94a3b8";
-        const startPct = ((row.start-1)/12)*100;
-        const widthPct = ((row.end-row.start+1)/12)*100;
-        return (
-          <div key={row.id} className="ganttRow">
-            <div className="ganttLabel" title={row.name}>#{row.id} {row.name.slice(0,20)}{row.name.length>20?"…":""}</div>
-            <div className="ganttBarTrack">
-              <div className="ganttBar" style={{left:`${startPct}%`,width:`${widthPct}%`,background:`${pColor}33`,borderColor:pColor}}>
-                <div className="ganttProgress" style={{width:`${row.progress}%`,background:sColor}} />
-                <span className="ganttPct">{row.progress}%</span>
-              </div>
-            </div>
-          </div>
-        );
-      })}
     </div>
   );
 }
@@ -664,7 +785,7 @@ function ScenarioChart({ results }: { results: ScenarioResult[] }) {
             </strong>
           </div>
           <div className="barTrack">
-            <div className="barFill" style={{width:`${(r.benefitScore/max)*100}%`,background:PILLAR_COLORS[r.pillar]??"#38bdf8"}} />
+            <div className="barFill" style={{width:`${(r.benefitScore/max)*100}%`,background:PILLAR_COLORS[r.pillar]??"#0369a1"}} />
           </div>
         </div>
       ))}
@@ -710,5 +831,84 @@ function downloadText(fileName: string, content: string, mime: string) {
   a.href = url; a.download = fileName;
   document.body.appendChild(a); a.click(); a.remove();
   window.setTimeout(()=>URL.revokeObjectURL(url), 100);
+}
+
+function ProjectDetailModal({ project: p, onClose }: { project: Project; onClose: () => void }) {
+  const pillarColor = PILLAR_COLORS[p.pillar] ?? "#0369a1";
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <div className="modalOverlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="modalPanel" role="dialog" aria-modal="true">
+
+        <div className="modalHeader">
+          <h2 className="modalTitle">{p.name}</h2>
+          <button type="button" className="modalClose" onClick={onClose} aria-label="ปิด">✕</button>
+        </div>
+
+        {p.description && (
+          <div className="modalDescBox">
+            <p style={{margin:0,lineHeight:1.7}}>{p.description}</p>
+          </div>
+        )}
+
+        <div className="modalBudgetBig">
+          <p className="modalBudgetLabel">งบประมาณ</p>
+          <p className="modalBudgetValue">{formatNumber(p.budget)}</p>
+          <p className="modalBudgetUnit">บาท · {(p.budget / 1_000_000).toFixed(2)} ล้านบาท</p>
+        </div>
+
+        <div className="modalSection">
+          <p className="modalSectionTitle">ข้อมูลทั่วไป</p>
+          <div className="modalGrid">
+            <div className="modalKV">
+              <p className="modalKVLabel">รหัสโครงการ</p>
+              <p className="modalKVValue">#{p.id}</p>
+            </div>
+            <div className="modalKV">
+              <p className="modalKVLabel">ปีงบประมาณ</p>
+              <p className="modalKVValue">{p.year}</p>
+            </div>
+            <div className="modalKV">
+              <p className="modalKVLabel">ยุทธศาสตร์</p>
+              <p className="modalKVValue" style={{color: pillarColor}}>{p.pillarTh || p.pillar}</p>
+            </div>
+            <div className="modalKV">
+              <p className="modalKVLabel">หมวดหมู่</p>
+              <p className="modalKVValue">{p.category}</p>
+            </div>
+          </div>
+        </div>
+
+        {p.sdgGoals && p.sdgGoals.length > 0 && (
+          <div className="modalSection">
+            <p className="modalSectionTitle">เป้าหมายการพัฒนาที่ยั่งยืน (SDG Goals)</p>
+            <div className="modalTags">
+              {p.sdgGoals.map((g) => <span key={g} className="modalTag">SDG {g}</span>)}
+            </div>
+          </div>
+        )}
+
+        {p.tags && p.tags.length > 0 && (
+          <div className="modalSection">
+            <p className="modalSectionTitle">แท็ก</p>
+            <div className="modalTags">
+              {p.tags.map((t) => <span key={t} className="modalTag">{t}</span>)}
+            </div>
+          </div>
+        )}
+
+        <div className="modalActions">
+          <button type="button" className="button buttonSecondary" onClick={onClose}>ปิด</button>
+        </div>
+
+      </div>
+    </div>
+  );
 }
 

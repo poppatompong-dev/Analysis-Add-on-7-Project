@@ -34,7 +34,6 @@ function validateRow(row: string[], headers: string[], index: number): { project
   const category = get("category") || get("หมวดหมู่");
   const status = get("status") || get("สถานะ");
   const completionPct = parseFloat(get("completionPct") || get("ความคืบหน้า") || "0");
-  const district = get("district") || get("อำเภอ");
   const riskLevel = get("riskLevel") || get("ระดับความเสี่ยง");
 
   if (!name) errors.push(`แถว ${index + 2}: ไม่มีชื่อโครงการ`);
@@ -53,7 +52,6 @@ function validateRow(row: string[], headers: string[], index: number): { project
     category: category || "ทั่วไป",
     ...(VALID_STATUSES.includes(status) && { status: status as Project["status"] }),
     ...(completionPct >= 0 && completionPct <= 100 && { completionPct }),
-    ...(district && { district }),
     ...(["low", "medium", "high"].includes(riskLevel) && { riskLevel: riskLevel as Project["riskLevel"] }),
   };
 
@@ -96,7 +94,6 @@ export async function POST(req: NextRequest) {
       .replace("หมวดหมู่", "category")
       .replace("สถานะ", "status")
       .replace("ความคืบหน้า", "completionPct")
-      .replace("อำเภอ", "district")
     );
 
     const projects: Partial<Project>[] = [];

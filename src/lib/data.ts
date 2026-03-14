@@ -11,14 +11,10 @@ export const projects: Project[] = [
     category: "ความปลอดภัยข้อมูล",
     status: "active",
     completionPct: 65,
-    startDate: "2569-01",
-    endDate: "2569-09",
-    district: "เมืองนครสวรรค์",
-    lat: 15.7047,
-    lng: 100.1367,
     riskLevel: "medium",
     sdgGoals: [16, 17],
     tags: ["PDPA", "ข้อมูลส่วนบุคคล", "กฎหมาย"],
+    description: "โครงการจัดหาระบบบริหารจัดการข้อมูลส่วนบุคคลตาม พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 ครอบคลุมการจัดเก็บ ประมวลผล และเผยแพร่ข้อมูลส่วนบุคคลของประชาชนและบุคลากรเทศบาล",
   },
   {
     id: 2,
@@ -30,14 +26,10 @@ export const projects: Project[] = [
     category: "ความปลอดภัยข้อมูล",
     status: "completed",
     completionPct: 100,
-    startDate: "2569-01",
-    endDate: "2569-06",
-    district: "เมืองนครสวรรค์",
-    lat: 15.7050,
-    lng: 100.1400,
     riskLevel: "low",
     sdgGoals: [9, 11],
     tags: ["เว็บไซต์", "บริการประชาชน"],
+    description: "พัฒนาเว็บไซต์เทศบาลนครนครสวรรค์แบบมีปฏิสัมพันธ์ (Interactive) เพื่อให้ประชาชนเข้าถึงข้อมูลโครงการเมืองอัจฉริยะและบริการออนไลน์ได้สะดวกยิ่งขึ้น",
   },
   {
     id: 3,
@@ -49,14 +41,10 @@ export const projects: Project[] = [
     category: "เครือข่ายไซเบอร์",
     status: "active",
     completionPct: 45,
-    startDate: "2569-03",
-    endDate: "2569-12",
-    district: "เมืองนครสวรรค์",
-    lat: 15.7060,
-    lng: 100.1350,
     riskLevel: "high",
     sdgGoals: [16],
     tags: ["ไซเบอร์", "ความปลอดภัย", "Phase1"],
+    description: "โครงการจัดหาระบบรักษาความมั่นคงปลอดภัยไซเบอร์ระยะที่ 1 ครอบคลุมการตรวจจับภัยคุกคามทางไซเบอร์ การป้องกันเครือข่ายของเทศบาล และการสร้างความตระหนักรู้ด้านความปลอดภัยทางดิจิทัลให้กับบุคลากร",
   },
   {
     id: 4,
@@ -68,14 +56,10 @@ export const projects: Project[] = [
     category: "เครือข่ายไซเบอร์",
     status: "delayed",
     completionPct: 10,
-    startDate: "2570-01",
-    endDate: "2570-09",
-    district: "เมืองนครสวรรค์",
-    lat: 15.7060,
-    lng: 100.1350,
     riskLevel: "high",
     sdgGoals: [16],
     tags: ["ไซเบอร์", "ความปลอดภัย", "Phase2"],
+    description: "ระยะที่ 2 ของโครงการไซเบอร์ซิเคียวริตี้ เน้นการติดตั้ง SOC (Security Operations Center) และระบบแจ้งเตือนภัยคุกคามอัตโนมัติ เพื่อยกระดับความปลอดภัยของเครือข่ายทั้งหมด",
   },
   {
     id: 5,
@@ -87,14 +71,10 @@ export const projects: Project[] = [
     category: "เครือข่ายไซเบอร์",
     status: "at-risk",
     completionPct: 30,
-    startDate: "2569-04",
-    endDate: "2570-03",
-    district: "เมืองนครสวรรค์",
-    lat: 15.7055,
-    lng: 100.1345,
     riskLevel: "high",
     sdgGoals: [16, 17],
     tags: ["ไซเบอร์", "รวมศูนย์", "งบสูง"],
+    description: "ระบบบริหารจัดการความมั่นคงปลอดภัยไซเบอร์แบบรวมศูนย์ (Unified SOC) ครอบคลุมทุกหน่วยงาน รวมถึง Firewall, Endpoint Protection, SIEM และ Incident Response Plan เพื่อปกป้องข้อมูลสำคัญของเทศบาลและประชาชน",
   },
   {
     id: 6,
@@ -106,14 +86,10 @@ export const projects: Project[] = [
     category: "ที่ปรึกษาและนโยบาย",
     status: "active",
     completionPct: 80,
-    startDate: "2569-02",
-    endDate: "2569-08",
-    district: "พยุหะคีรี",
-    lat: 15.4800,
-    lng: 100.1300,
     riskLevel: "low",
     sdgGoals: [8, 9],
     tags: ["ดิจิทัล", "แพลตฟอร์ม", "เศรษฐกิจ"],
+    description: "จ้างที่ปรึกษาเพื่อพัฒนาแพลตฟอร์มดิจิทัลสำหรับส่งเสริมเศรษฐกิจท้องถิ่น รวมถึงระบบ E-Commerce, E-Market และการเชื่อมโยงผู้ประกอบการในพื้นที่กับตลาดดิจิทัล",
   },
   {
     id: 7,
@@ -125,14 +101,10 @@ export const projects: Project[] = [
     category: "ที่ปรึกษาและนโยบาย",
     status: "completed",
     completionPct: 100,
-    startDate: "2569-01",
-    endDate: "2569-05",
-    district: "ตาคลี",
-    lat: 15.2640,
-    lng: 100.3420,
     riskLevel: "low",
     sdgGoals: [4, 17],
     tags: ["นโยบาย", "สื่อสาร", "ประชาชน"],
+    description: "จ้างที่ปรึกษาด้านการสื่อสารนโยบายเมืองอัจฉริยะให้ประชาชนเข้าใจและมีส่วนร่วม ครอบคลุมการสร้างสื่อประชาสัมพันธ์ การจัดเวทีเสวนา และสื่อออนไลน์สำหรับประชาชนและภาคเอกชน",
   },
 ];
 
@@ -140,25 +112,26 @@ export const filterOptions = {
   years: [...new Set(projects.map((item) => item.year))].sort(),
   pillars: [...new Set(projects.map((item) => item.pillar))].sort(),
   categories: [...new Set(projects.map((item) => item.category))].sort(),
-  statuses: [...new Set(projects.map((item) => item.status).filter(Boolean))] as string[],
-  districts: [...new Set(projects.map((item) => item.district).filter(Boolean))].sort() as string[],
+  statuses: [] as string[],
   budgetRange: [Math.min(...projects.map((item) => item.budget)), Math.max(...projects.map((item) => item.budget))] as [number, number],
 };
 
 export function getKPIData(all: Project[], filtered: Project[]) {
   const totalBudget = filtered.reduce((s, p) => s + p.budget, 0);
   const allBudget = all.reduce((s, p) => s + p.budget, 0);
-  const completed = filtered.filter((p) => p.status === "completed").length;
-  const atRisk = filtered.filter((p) => p.riskLevel === "high" || p.status === "at-risk" || p.status === "delayed").length;
-  const avgCompletion = filtered.length ? Math.round(filtered.reduce((s, p) => s + (p.completionPct ?? 0), 0) / filtered.length) : 0;
+  const byPillar = new Map<string, number>();
+  filtered.forEach((p) => byPillar.set(p.pillar, (byPillar.get(p.pillar) ?? 0) + p.budget));
+  const pillarCount = byPillar.size;
   const budgetUtil = allBudget ? Math.round((totalBudget / allBudget) * 100) : 0;
+  const categoryCount = new Set(filtered.map((p) => p.category)).size;
+  const avgBudget = filtered.length ? Math.round(totalBudget / filtered.length) : 0;
   return [
     { id: "total", label: "โครงการทั้งหมด", value: filtered.length, unit: "โครงการ", change: 0, trend: "flat" as const, sparkline: [3, 4, 5, 5, 6, 6, 7], accent: "cyan", icon: "🏙️" },
-    { id: "budget", label: "งบประมาณรวม", value: (totalBudget / 1_000_000).toFixed(2), unit: "ล้านบาท", change: 12.4, trend: "up" as const, sparkline: [2, 3, 4, 5, 5, 7, 8], accent: "violet", icon: "💰" },
-    { id: "util", label: "Budget Utilization", value: budgetUtil, unit: "%", change: -2.1, trend: "down" as const, sparkline: [80, 78, 82, 75, 74, 73, budgetUtil], accent: "green", icon: "📊" },
-    { id: "completion", label: "ความคืบหน้าเฉลี่ย", value: avgCompletion, unit: "%", change: 5.3, trend: "up" as const, sparkline: [30, 35, 40, 45, 50, 55, avgCompletion], accent: "amber", icon: "✅" },
-    { id: "risk", label: "โครงการความเสี่ยงสูง", value: atRisk, unit: "โครงการ", change: 1, trend: "up" as const, sparkline: [1, 1, 2, 2, 2, 3, atRisk], accent: "rose", icon: "⚠️" },
-    { id: "completed", label: "โครงการเสร็จสมบูรณ์", value: completed, unit: "โครงการ", change: 1, trend: "up" as const, sparkline: [0, 0, 0, 1, 1, 1, completed], accent: "emerald", icon: "🎯" },
+    { id: "budget", label: "งบประมาณรวม", value: (totalBudget / 1_000_000).toFixed(2), unit: "ล้านบาท", change: 0, trend: "flat" as const, sparkline: [2, 3, 4, 5, 5, 7, 8], accent: "violet", icon: "💰" },
+    { id: "util", label: "สัดส่วนงบ (กรอง/ทั้งหมด)", value: budgetUtil, unit: "%", change: 0, trend: "flat" as const, sparkline: [80, 78, 82, 75, 74, 73, budgetUtil], accent: "green", icon: "📊" },
+    { id: "pillar", label: "จำนวนยุทธศาสตร์", value: pillarCount, unit: "ยุทธศาสตร์", change: 0, trend: "flat" as const, sparkline: [1, 2, 2, 3, 3, 4, pillarCount], accent: "amber", icon: "🎯" },
+    { id: "category", label: "จำนวนหมวดหมู่", value: categoryCount, unit: "หมวดหมู่", change: 0, trend: "flat" as const, sparkline: [1, 1, 2, 2, 3, 3, categoryCount], accent: "emerald", icon: "📁" },
+    { id: "avgbudget", label: "งบเฉลี่ย/โครงการ", value: (avgBudget / 1_000_000).toFixed(2), unit: "ล้านบาท", change: 0, trend: "flat" as const, sparkline: [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, avgBudget / 1_000_000], accent: "rose", icon: "📐" },
   ];
 }
 
@@ -182,15 +155,18 @@ export function getRadarData(projects: Project[]): RadarDimension[] {
 export function getAIInsights(projects: Project[]): AIInsight[] {
   const total = projects.reduce((s, p) => s + p.budget, 0);
   const atRisk = projects.filter((p) => p.riskLevel === "high");
-  const delayed = projects.filter((p) => p.status === "delayed");
   const topPillarBudget = Math.max(...["Smart Governance","Smart Living","Smart Economy","Smart People"].map((pl) => projects.filter((p) => p.pillar === pl).reduce((s, p) => s + p.budget, 0)));
   const concentration = total ? Math.round((topPillarBudget / total) * 100) : 0;
   const insights: AIInsight[] = [];
-  if (atRisk.length > 0) insights.push({ type: "warning", title: `${atRisk.length} โครงการมีความเสี่ยงสูง`, description: `โครงการ: ${atRisk.map((p) => `#${p.id}`).join(", ")} ต้องการการติดตามอย่างใกล้ชิด`, affectedProjects: atRisk.map((p) => p.id), urgency: "high" });
-  if (delayed.length > 0) insights.push({ type: "risk", title: `${delayed.length} โครงการล่าช้ากว่าแผน`, description: `โครงการ ${delayed.map((p) => p.name).join(", ")} มีความเสี่ยงต่อการเบิกจ่ายงบประมาณ`, affectedProjects: delayed.map((p) => p.id), urgency: "high" });
-  if (concentration > 60) insights.push({ type: "risk", title: `งบประมาณกระจุกตัว ${concentration}%`, description: "งบประมาณส่วนใหญ่อยู่ในยุทธศาสตร์เดียว อาจทำให้ขาดความสมดุลเชิงนโยบาย", urgency: "medium" });
-  insights.push({ type: "opportunity", title: "ศักยภาพการรวมโครงการไซเบอร์", description: "โครงการด้านไซเบอร์ 3 โครงการ อาจรวมกันได้เพื่อประหยัดงบประมาณประมาณ 3.3 ล้านบาท", affectedProjects: [3, 4, 5], urgency: "medium" });
-  insights.push({ type: "info", title: "SDG Alignment ดีขึ้น", description: "โครงการครอบคลุม SDG Goals 8 ข้อ ซึ่งสอดคล้องกับเป้าหมายการพัฒนาอย่างยั่งยืน", urgency: "low" });
+  if (atRisk.length > 0) insights.push({ type: "warning", title: `โครงการที่มีระดับความเสี่ยงสูง: ${atRisk.length} โครงการ`, description: `โครงการ: ${atRisk.map((p) => `#${p.id} ${p.name}`).join(" / ")}`, affectedProjects: atRisk.map((p) => p.id), urgency: "high" });
+  if (concentration > 60) insights.push({ type: "info", title: `งบประมาณกระจุกตัวใน 1 ยุทธศาสตร์ คิดเป็น ${concentration}%`, description: `งบประมาณส่วนใหญ่อยู่ในยุทธศาสตร์ที่มีสัดส่วนสูงสุด (${concentration}% ของงบในมุมมองนี้)`, urgency: "medium" });
+  const cyberProjects = projects.filter((p) => p.category === "เครือข่ายไซเบอร์");
+  if (cyberProjects.length >= 2) {
+    const cyberBudget = cyberProjects.reduce((s, p) => s + p.budget, 0);
+    insights.push({ type: "info", title: `โครงการหมวดเครือข่ายไซเบอร์: ${cyberProjects.length} โครงการ`, description: `รวมงบประมาณ ${cyberProjects.length} โครงการในหมวดนี้ทั้งสิ้น ${(cyberBudget / 1_000_000).toFixed(2)} ล้านบาท (${Math.round((cyberBudget / total) * 100)}% ของงบรวม)`, affectedProjects: cyberProjects.map((p) => p.id), urgency: "low" });
+  }
+  const sdgCount = new Set(projects.flatMap((p) => p.sdgGoals ?? [])).size;
+  if (sdgCount > 0) insights.push({ type: "info", title: `ครอบคลุม ${sdgCount} SDG Goals`, description: `โครงการในมุมมองนี้เกี่ยวข้องกับเป้าหมาย SDG จำนวน ${sdgCount} ข้อ`, urgency: "low" });
   return insights;
 }
 
@@ -207,7 +183,7 @@ export function getTreemapData(projects: Project[]): TreemapNode[] {
     nodes.push({
       label: pillar, value: pillarBudget, color: pillarColors[pillar] ?? "#94a3b8",
       x: offsetX, y: 0, width: pillarWidth, height: 100,
-      children: items.map((p, i) => ({ label: p.name.substring(0, 20), value: p.budget, color: pillarColors[pillar] ?? "#94a3b8", x: offsetX, y: i * (100 / items.length), width: pillarWidth, height: 100 / items.length })),
+      children: items.map((p, i) => ({ label: p.name, value: p.budget, color: pillarColors[pillar] ?? "#94a3b8", x: offsetX, y: i * (100 / items.length), width: pillarWidth, height: 100 / items.length })),
     });
     offsetX += pillarWidth;
   });
@@ -215,10 +191,8 @@ export function getTreemapData(projects: Project[]): TreemapNode[] {
 }
 
 export function getGanttData(projects: Project[]): GanttRow[] {
-  return projects.map((p) => {
-    const startMonth = p.startDate ? parseInt(p.startDate.split("-")[1] ?? "1") : 1;
-    const endMonth = p.endDate ? parseInt(p.endDate.split("-")[1] ?? "12") : 12;
-    return { id: p.id, name: p.name, pillar: p.pillar, start: startMonth, end: endMonth, progress: p.completionPct ?? 0, status: p.status ?? "active" };
+  return projects.map((p, i) => {
+    return { id: p.id, name: p.name, pillar: p.pillar, start: 1, end: 12, progress: 0, status: "active" };
   });
 }
 

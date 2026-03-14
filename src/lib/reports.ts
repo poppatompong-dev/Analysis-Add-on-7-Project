@@ -12,10 +12,9 @@ function stringifyFilters(filters: Filters) {
 }
 
 export function buildCsv(projects: Project[]) {
-  const header = ["รหัส", "ชื่อโครงการ", "งบประมาณ (บาท)", "ปีงบประมาณ", "ยุทธศาสตร์ (EN)", "ยุทธศาสตร์ (TH)", "หมวดหมู่", "สถานะ", "ความคืบหน้า (%)", "อำเภอ"];
+  const header = ["รหัส", "ชื่อโครงการ", "งบประมาณ (บาท)", "ปีงบประมาณ", "ยุทธศาสตร์ (EN)", "ยุทธศาสตร์ (TH)", "หมวดหมู่"];
   const rows = projects.map((p) => [
     p.id, p.name, p.budget, p.year, p.pillar, p.pillarTh, p.category,
-    p.status ?? "", p.completionPct ?? "", p.district ?? "",
   ]);
   return [header, ...rows]
     .map((row) => row.map((cell) => `"${String(cell ?? "").replaceAll('"', '""')}"`).join(","))
@@ -32,11 +31,6 @@ export function buildExecutiveReport(projects: Project[], filters: Filters, now:
   const groupedYear = groupBy(projects, (p) => p.year);
   const groupedCategory = groupBy(projects, (p) => p.category);
 
-  const statusGroups = groupBy(projects.filter((p) => p.status), (p) => p.status as string);
-  const delayedCount = (statusGroups["delayed"] ?? []).length;
-  const atRiskCount = (statusGroups["at-risk"] ?? []).length;
-  const completedCount = (statusGroups["completed"] ?? []).length;
-
   const lines: string[] = [];
   lines.push("═".repeat(60));
   lines.push("รายงานสรุปผู้บริหาร");
@@ -50,10 +44,7 @@ export function buildExecutiveReport(projects: Project[], filters: Filters, now:
   lines.push(`   งบประมาณเฉลี่ย: ${formatNumber(Math.round(avgBudget))} บาท/โครงการ`);
   lines.push(`   โครงการงบสูงสุด: ${maxProject.name} (${formatNumber(maxProject.budget)} บาท)`);
   lines.push("");
-  lines.push("2. สถานะโครงการ");
-  lines.push(`   เสร็จสิ้น: ${completedCount} | ดำเนินการ: ${(statusGroups["active"] ?? []).length} | ล่าช้า: ${delayedCount} | เสี่ยง: ${atRiskCount}`);
-  lines.push("");
-  lines.push("3. งบประมาณแยกตามยุทธศาสตร์");
+  lines.push("2. งบประมาณแยกตามยุทธศาสตร์");
   Object.entries(groupedPillar)
     .sort((a, b) => sumBudget(b[1]) - sumBudget(a[1]))
     .forEach(([key, items]) => {
@@ -61,24 +52,24 @@ export function buildExecutiveReport(projects: Project[], filters: Filters, now:
       lines.push(`   - ${key}: ${formatNumber(sumBudget(items))} บาท (${pct}%, ${items.length} โครงการ)`);
     });
   lines.push("");
-  lines.push("4. งบประมาณแยกตามปีงบประมาณ");
+  lines.push("3. งบประมาณแยกตามปีงบประมาณ");
   Object.entries(groupedYear)
     .sort((a, b) => a[0].localeCompare(b[0]))
     .forEach(([key, items]) => {
       lines.push(`   - พ.ศ. ${key}: ${formatNumber(sumBudget(items))} บาท (${items.length} โครงการ)`);
     });
   lines.push("");
-  lines.push("5. งบประมาณแยกตามหมวดหมู่การลงทุน");
+  lines.push("4. งบประมาณแยกตามหมวดหมู่การลงทุน");
   Object.entries(groupedCategory)
     .sort((a, b) => sumBudget(b[1]) - sumBudget(a[1]))
     .forEach(([key, items]) => {
       lines.push(`   - ${key}: ${formatNumber(sumBudget(items))} บาท (${items.length} โครงการ)`);
     });
   lines.push("");
-  lines.push("6. รายชื่อโครงการ");
+  lines.push("5. รายชื่อโครงการ");
   projects.forEach((p) => {
     lines.push(`   ${p.id}. ${p.name}`);
-    lines.push(`      งบ: ${formatNumber(p.budget)} บาท | ปี: ${p.year} | ยุทธศาสตร์: ${p.pillarTh || p.pillar}${p.status ? ` | สถานะ: ${p.status}` : ""}${p.completionPct != null ? ` | คืบหน้า: ${p.completionPct}%` : ""}`);
+    lines.push(`      งบ: ${formatNumber(p.budget)} บาท | ปี: ${p.year} | ยุทธศาสตร์: ${p.pillarTh || p.pillar}`);
   });
   lines.push("");
   lines.push("ตัวกรองที่ใช้");
@@ -98,7 +89,6 @@ export function buildDeepAnalysis(projects: Project[], filters: Filters, now: st
   const topPillarPct = Math.round((sumBudget(topPillar[1]) / totalBudget) * 100);
 
   const duplicateCategoryGroups = Object.entries(categoryGroups).filter(([, items]) => items.length >= 2);
-  const delayedProjects = projects.filter((p) => p.status === "delayed" || p.status === "at-risk");
 
   const pillarBudgetConcentration = topPillarPct >= 50;
 
@@ -133,16 +123,7 @@ export function buildDeepAnalysis(projects: Project[], filters: Filters, now: st
       });
   }
   lines.push("");
-  lines.push("3. โครงการที่ต้องติดตาม (ล่าช้าหรือเสี่ยง)");
-  if (delayedProjects.length === 0) {
-    lines.push("   ไม่พบโครงการที่มีสถานะล่าช้าหรือเสี่ยงในมุมมองนี้");
-  } else {
-    delayedProjects.forEach((p) => {
-      lines.push(`   - #${p.id} ${p.name} — สถานะ: ${p.status}${p.completionPct != null ? `, คืบหน้า ${p.completionPct}%` : ""}`);
-    });
-  }
-  lines.push("");
-  lines.push("4. สัดส่วนงบประมาณตามหมวดหมู่");
+  lines.push("3. สัดส่วนงบประมาณตามหมวดหมู่");
   Object.entries(categoryGroups)
     .sort((a, b) => sumBudget(b[1]) - sumBudget(a[1]))
     .forEach(([cat, items]) => {

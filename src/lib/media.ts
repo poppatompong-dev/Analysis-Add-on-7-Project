@@ -3,7 +3,12 @@ import path from "path";
 import fs from "fs";
 import type { MediaFile } from "@/types/project";
 
-export const sourceDir = path.resolve("C:/Users/Patompong.l/Documents/รายงาน ผอ.หนึ่ง/Source");
+const candidates = [
+  path.join(process.cwd(), "Source"),
+  path.join(process.cwd(), "..", "Source"),
+  "C:/Users/Patompong.l/Documents/รายงาน ผอ.หนึ่ง/Source",
+];
+export const sourceDir = candidates.find((p) => fs.existsSync(p)) ?? candidates[0];
 
 const videoExt = new Set([".mp4", ".mov", ".avi", ".webm"]);
 const audioExt = new Set([".mp3", ".wav", ".m4a", ".aac"]);

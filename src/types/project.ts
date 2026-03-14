@@ -8,14 +8,10 @@ export type Project = {
   category: string;
   status?: "active" | "delayed" | "completed" | "at-risk";
   completionPct?: number;
-  startDate?: string;
-  endDate?: string;
-  district?: string;
-  lat?: number;
-  lng?: number;
   riskLevel?: "low" | "medium" | "high";
   sdgGoals?: number[];
   tags?: string[];
+  description?: string;
 };
 
 export type KPICard = {
@@ -66,7 +62,7 @@ export type GanttRow = {
   status: string;
 };
 
-export type DisplayMode = "default" | "dark" | "presentation" | "fullscreen";
+export type DisplayMode = "default" | "presentation" | "fullscreen";
 
 export type UserRole = "admin" | "analyst" | "executive" | "viewer";
 
@@ -84,7 +80,6 @@ export type Filters = {
   pillars: string[];
   categories: string[];
   statuses: string[];
-  districts: string[];
   budgetRange: [number, number];
 };
 

@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Decision Dashboard | ผอ. | CCF_000068</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --navy:#0D2137;--blue:#1A5FA8;--sky:#2E8FD4;--teal:#00B4CC;
+  --green:#00A86B;--amber:#F59E0B;--red:#DC2626;--purple:#7C3AED;
+  --pink:#DB2777;--orange:#EA580C;
+  --bg:#F0F5FB;--card:#FFFFFF;--border:#E2EBF5;
+  --text:#0D1B2A;--muted:#6B7A90;--light:#EEF4FB;
+}
+body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
+
+/* ── TOPBAR ── */
+.topbar{background:linear-gradient(135deg,var(--navy) 0%,var(--blue) 55%,var(--teal) 100%);
+  padding:0 28px;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,.3)}
+.topbar-inner{display:flex;align-items:center;justify-content:space-between;height:58px}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:34px;height:34px;background:rgba(255,255,255,.15);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;font-size:18px}
+.logo-text{font-size:15px;font-weight:700;color:#fff;line-height:1.2}
+.logo-sub{font-size:11px;color:rgba(255,255,255,.7);font-weight:400}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.live-badge{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);
+  border-radius:20px;padding:4px 12px;font-size:11px;color:#fff;display:flex;align-items:center;gap:6px}
+.live-dot{width:7px;height:7px;background:#4ADE80;border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.3)}}
+.doc-tag{background:rgba(255,255,255,.1);border-radius:6px;padding:4px 10px;font-size:11px;color:rgba(255,255,255,.8)}
+
+/* ── FILTER BAR ── */
+.filter-bar{background:#fff;border-bottom:2px solid var(--border);padding:12px 28px;
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;position:sticky;top:58px;z-index:90;
+  box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.filter-label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-right:4px}
+.filter-group{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.f-divider{width:1px;height:28px;background:var(--border);margin:0 6px}
+.filter-btn{padding:5px 14px;border-radius:20px;border:1.5px solid var(--border);
+  background:#fff;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;
+  cursor:pointer;transition:all .2s;color:var(--muted);white-space:nowrap}
+.filter-btn:hover{border-color:var(--blue);color:var(--blue);background:var(--light)}
+.filter-btn.active{color:#fff;border-color:transparent;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.filter-btn.active.all{background:var(--navy)}
+.filter-btn.active.cat-cyber{background:linear-gradient(135deg,#DC2626,#EF4444)}
+.filter-btn.active.cat-pdpa{background:linear-gradient(135deg,#1A5FA8,#2E8FD4)}
+.filter-btn.active.cat-digital{background:linear-gradient(135deg,#00B4CC,#0EA5E9)}
+.filter-btn.active.cat-smart{background:linear-gradient(135deg,#7C3AED,#A78BFA)}
+.filter-btn.active.risk-high{background:linear-gradient(135deg,#DC2626,#F97316)}
+.filter-btn.active.risk-med{background:linear-gradient(135deg,#F59E0B,#FBBF24)}
+.filter-btn.active.risk-low{background:linear-gradient(135deg,#00A86B,#34D399)}
+.filter-btn.active.yr-69{background:linear-gradient(135deg,#1A5FA8,#7C3AED)}
+.filter-btn.active.yr-70{background:linear-gradient(135deg,#7C3AED,#DB2777)}
+.clear-btn{padding:5px 12px;border-radius:20px;border:1.5px solid #FECACA;
+  background:#FEF2F2;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;
+  cursor:pointer;color:#DC2626;transition:all .2s;margin-left:auto}
+.clear-btn:hover{background:#FECACA}
+.result-count{font-size:12px;color:var(--muted);font-weight:600;white-space:nowrap}
+
+/* ── LAYOUT ── */
+.main{padding:20px 28px;display:grid;gap:18px;max-width:1600px;margin:0 auto}
+
+/* ── ALERT BANNER ── */
+.alert-banner{background:linear-gradient(135deg,#7F1D1D,#DC2626);border-radius:14px;
+  padding:14px 20px;display:flex;align-items:center;gap:14px;animation:slideIn .5s ease}
+@keyframes slideIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+.alert-icon{font-size:28px;flex-shrink:0}
+.alert-text h3{font-size:15px;font-weight:800;color:#fff}
+.alert-text p{font-size:12px;color:rgba(255,255,255,.85);margin-top:2px}
+.alert-pills{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
+.alert-pill{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);
+  border-radius:20px;padding:4px 12px;font-size:11px;color:#fff;font-weight:600;white-space:nowrap}
+.alert-pill.urgent{background:#FEF08A;color:#713F12;border-color:#FDE047}
+
+/* ── KPI GRID ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+.kpi-card{background:var(--card);border-radius:14px;padding:16px;
+  border:1.5px solid var(--border);transition:all .25s;cursor:default;position:relative;overflow:hidden}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:14px 14px 0 0}
+.kpi-card.kpi-red::before{background:linear-gradient(90deg,#DC2626,#F97316)}
+.kpi-card.kpi-blue::before{background:linear-gradient(90deg,#1A5FA8,#2E8FD4)}
+.kpi-card.kpi-teal::before{background:linear-gradient(90deg,#00B4CC,#0EA5E9)}
+.kpi-card.kpi-amber::before{background:linear-gradient(90deg,#F59E0B,#FBBF24)}
+.kpi-card.kpi-purple::before{background:linear-gradient(90deg,#7C3AED,#A78BFA)}
+.kpi-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.1)}
+.kpi-top{display:flex;align-items:flex-start;justify-content:space-between}
+.kpi-icon-wrap{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;
+  justify-content:center;font-size:20px;flex-shrink:0}
+.kpi-trend{font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px}
+.trend-up{background:#FEE2E2;color:#DC2626}
+.trend-warn{background:#FEF3C7;color:#92400E}
+.trend-ok{background:#D1FAE5;color:#065F46}
+.kpi-val{font-size:26px;font-weight:900;margin-top:8px;line-height:1}
+.kpi-label{font-size:11px;color:var(--muted);font-weight:500;margin-top:4px;line-height:1.4}
+.kpi-sub{font-size:10px;color:var(--muted);margin-top:6px;padding-top:6px;border-top:1px solid var(--border)}
+
+/* ── ROW LAYOUTS ── */
+.row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px}
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.row-2-3{display:grid;grid-template-columns:2fr 3fr;gap:18px}
+.row-3-2{display:grid;grid-template-columns:3fr 2fr;gap:18px}
+
+/* ── CARD ── */
+.card{background:var(--card);border-radius:16px;border:1.5px solid var(--border);
+  overflow:hidden;transition:all .25s}
+.card-head{display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px 12px;border-bottom:1.5px solid var(--border)}
+.card-title{display:flex;align-items:center;gap:8px}
+.card-dot{width:10px;height:10px;border-radius:50%}
+.card-head h3{font-size:14px;font-weight:700;color:var(--navy)}
+.card-tag{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700}
+.card-body{padding:16px 18px}
+
+/* ── PROJECT CARDS ── */
+.proj-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px}
+.proj-card{background:var(--card);border-radius:14px;border:1.5px solid var(--border);
+  overflow:hidden;cursor:pointer;transition:all .3s;position:relative}
+.proj-card.filtered-out{opacity:.25;transform:scale(.96);pointer-events:none}
+.proj-card:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(0,0,0,.12)}
+.proj-card.selected{border-color:var(--blue);box-shadow:0 0 0 3px rgba(26,95,168,.15)}
+.proj-top{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px}
+.proj-num{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;
+  justify-content:center;font-size:14px;font-weight:800;color:#fff;flex-shrink:0}
+.proj-badges{display:flex;gap:6px;align-items:center}
+.risk-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px}
+.risk-high{background:#FEE2E2;color:#DC2626}
+.risk-med{background:#FEF3C7;color:#92400E}
+.risk-low{background:#D1FAE5;color:#065F46}
+.yr-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px}
+.yr-69{background:#DBEAFE;color:#1D4ED8}
+.yr-70{background:#F3E8FF;color:#6D28D9}
+.proj-body{padding:0 16px 14px}
+.proj-name{font-size:13px;font-weight:700;color:var(--navy);line-height:1.4;margin-bottom:6px}
+.proj-desc{font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:10px}
+.proj-budget-wrap{display:flex;align-items:center;justify-content:space-between}
+.proj-budget{font-size:18px;font-weight:800}
+.proj-unit{font-size:10px;color:var(--muted)}
+.budget-bar-wrap{margin:8px 0 4px}
+.budget-bar-track{background:#F0F4F9;border-radius:99px;height:5px}
+.budget-bar-fill{height:5px;border-radius:99px;transition:width .8s ease}
+.proj-footer{display:flex;justify-content:space-between;align-items:center;
+  padding:10px 16px;background:#F8FAFD;border-top:1px solid var(--border);font-size:10px;color:var(--muted)}
+.proj-expand{font-size:10px;color:var(--blue);font-weight:600}
+
+/* Project detail modal */
+.proj-detail{display:none;padding:0 16px 14px;border-top:1px dashed var(--border);margin-top:2px;animation:fadeIn .3s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.proj-detail.open{display:block}
+.detail-row{display:flex;gap:8px;margin-bottom:6px;font-size:11px}
+.detail-key{font-weight:700;color:var(--blue);min-width:80px;flex-shrink:0}
+.detail-val{color:var(--text);line-height:1.5}
+.law-chip{display:inline-block;background:#FEE2E2;color:#DC2626;border:1px solid #FECACA;
+  border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;margin:2px}
+.insight-chip{display:inline-block;background:#EDE9FE;color:#6D28D9;
+  border-radius:6px;padding:2px 8px;font-size:10px;font-weight:600;margin:2px}
+
+/* ── RISK MATRIX ── */
+.risk-matrix{display:grid;grid-template-columns:24px 1fr 1fr 1fr;grid-template-rows:1fr 1fr 1fr 24px;
+  gap:4px;height:220px;width:100%}
+.rm-cell{border-radius:8px;display:flex;align-items:center;justify-content:center;
+  flex-wrap:wrap;gap:3px;padding:4px;transition:all .3s}
+.rm-cell.high-high{background:#FEE2E2}
+.rm-cell.high-med{background:#FEE2E2}
+.rm-cell.med-high{background:#FEF3C7}
+.rm-cell.med-med{background:#FEF3C7}
+.rm-cell.low-high{background:#D1FAE5}
+.rm-cell.low-med{background:#D1FAE5}
+.rm-cell.low-low{background:#D1FAE5}
+.rm-cell.high-low{background:#FEF3C7}
+.rm-label{font-size:9px;color:var(--muted);font-weight:600;display:flex;align-items:center;justify-content:center}
+.rm-label.vertical{writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg)}
+.rm-proj{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:10px;font-weight:800;color:#fff;cursor:pointer;
+  transition:transform .2s;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.rm-proj:hover{transform:scale(1.2)}
+
+/* ── COMPLIANCE TIMELINE ── */
+.comp-timeline{display:flex;flex-direction:column;gap:0}
+.comp-item{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);align-items:flex-start}
+.comp-item:last-child{border-bottom:none}
+.comp-dot-wrap{display:flex;flex-direction:column;align-items:center;gap:0}
+.comp-dot{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:12px;flex-shrink:0;font-weight:800;color:#fff}
+.comp-line{width:2px;flex:1;min-height:8px;background:linear-gradient(to bottom,rgba(0,0,0,.1),transparent)}
+.comp-info{flex:1}
+.comp-title{font-size:12px;font-weight:700;color:var(--navy);margin-bottom:2px}
+.comp-date{font-size:11px;color:var(--muted)}
+.comp-status{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;margin-top:4px;display:inline-block}
+.status-overdue{background:#FEE2E2;color:#DC2626}
+.status-urgent{background:#FEF3C7;color:#92400E}
+.status-ok{background:#D1FAE5;color:#065F46}
+.status-plan{background:#EDE9FE;color:#6D28D9}
+.comp-penalty{font-size:10px;color:#DC2626;font-weight:600;margin-top:3px}
+
+/* ── THREAT METER ── */
+.threat-meter{text-align:center;padding:8px 0}
+.threat-gauge-wrap{position:relative;width:200px;margin:0 auto}
+.threat-number{font-size:44px;font-weight:900;color:var(--red);line-height:1;margin:8px 0 4px}
+.threat-label-main{font-size:13px;font-weight:700;color:var(--navy)}
+.threat-label-sub{font-size:11px;color:var(--muted);margin-bottom:12px}
+.stat-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.stat-mini{background:var(--light);border-radius:10px;padding:10px;text-align:center}
+.stat-mini-val{font-size:18px;font-weight:800;color:var(--navy)}
+.stat-mini-lab{font-size:10px;color:var(--muted)}
+
+/* ── CHARTS ── */
+.chart-container{position:relative}
+
+/* ── ROI CARD ── */
+.roi-items{display:flex;flex-direction:column;gap:10px}
+.roi-item{display:flex;gap:10px;padding:10px 12px;background:var(--light);border-radius:10px;
+  border-left:3px solid}
+.roi-icon{font-size:20px;flex-shrink:0}
+.roi-title{font-size:12px;font-weight:700;color:var(--navy);margin-bottom:2px}
+.roi-body{font-size:11px;color:var(--muted);line-height:1.5}
+.roi-amount{font-size:14px;font-weight:800;margin-top:4px}
+
+/* ── BENCHMARK ── */
+.bench-wrap{overflow-x:auto}
+.bench-table{width:100%;border-collapse:collapse;font-size:11px}
+.bench-table th{background:var(--navy);color:#fff;padding:7px 10px;text-align:left;font-weight:600}
+.bench-table td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+.bench-table tr:nth-child(even) td{background:#F8FAFD}
+.bench-table tr:last-child td{background:var(--light);font-weight:700;color:var(--navy)}
+.green-cell{color:#065F46;font-weight:700}
+.red-cell{color:#DC2626;font-weight:700}
+
+/* ── INSIGHT CARDS ── */
+.insight-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.insight-card{border-radius:12px;padding:14px;border-left:4px solid;transition:all .25s}
+.insight-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.08)}
+.insight-icon{font-size:24px;margin-bottom:6px}
+.insight-title{font-size:12px;font-weight:800;margin-bottom:4px}
+.insight-body{font-size:11px;line-height:1.6;color:var(--muted)}
+
+/* ── RECOMMENDATION ── */
+.rec-items{display:flex;flex-direction:column;gap:8px}
+.rec-item{display:flex;gap:12px;padding:12px;border-radius:10px;align-items:flex-start;border:1.5px solid}
+.rec-num{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;
+  justify-content:center;font-size:13px;font-weight:800;color:#fff;flex-shrink:0}
+.rec-title{font-size:12px;font-weight:800;margin-bottom:3px}
+.rec-body{font-size:11px;color:var(--muted);line-height:1.5}
+.rec-tag{display:inline-block;font-size:9px;font-weight:700;padding:1px 6px;
+  border-radius:6px;margin-top:4px}
+
+/* ── APPROVE SECTION ── */
+.approve-card{background:linear-gradient(135deg,#0D2137,#1A5FA8);border-radius:16px;padding:20px;
+  text-align:center;position:relative;overflow:hidden}
+.approve-card::before{content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M20 20c0 5.52-4.48 10-10 10S0 25.52 0 20 4.48 10 10 10s10 4.48 10 10zm10 0c0 5.52 4.48 10 10 10s10-4.48 10-10-4.48-10-10-10-10 4.48-10 10z'/%3E%3C/g%3E%3C/svg%3E");
+  pointer-events:none}
+.approve-inner{position:relative;z-index:1}
+.approve-icon{font-size:36px;margin-bottom:8px}
+.approve-title{font-size:17px;font-weight:800;color:#fff;margin-bottom:6px}
+.approve-sub{font-size:12px;color:rgba(255,255,255,.75);margin-bottom:16px;line-height:1.6}
+.approve-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.approve-stat{background:rgba(255,255,255,.1);border-radius:10px;padding:10px;
+  border:1px solid rgba(255,255,255,.15)}
+.approve-stat-val{font-size:18px;font-weight:800;color:#fff}
+.approve-stat-lab{font-size:10px;color:rgba(255,255,255,.7)}
+.approve-risk-compare{background:rgba(0,0,0,.2);border-radius:10px;padding:12px;
+  display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;text-align:center}
+.risk-side{padding:8px}
+.risk-side-label{font-size:10px;color:rgba(255,255,255,.6);margin-bottom:4px}
+.risk-side-val{font-size:16px;font-weight:800}
+.risk-side.danger .risk-side-val{color:#FCA5A5}
+.risk-side.safe .risk-side-val{color:#86EFAC}
+.vs-label{font-size:13px;color:rgba(255,255,255,.4);font-weight:700}
+
+/* ── FOOTER ── */
+.dash-footer{background:#fff;border-top:2px solid var(--border);padding:12px 28px;
+  display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted);
+  margin-top:8px}
+
+/* ── TRANSITIONS ── */
+.proj-card{transition:opacity .35s,transform .35s,box-shadow .25s}
+.anim-in{animation:popIn .4s ease}
+@keyframes popIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:#F0F5FB}
+::-webkit-scrollbar-thumb{background:#C5D5E8;border-radius:99px}
+
+@media(max-width:1200px){.kpi-grid{grid-template-columns:repeat(3,1fr)}.row-3,.insight-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:800px){.kpi-grid{grid-template-columns:1fr 1fr}.row-2,.row-2-3,.row-3-2,.row-3{grid-template-columns:1fr}}
+
+/* ── MODAL SYSTEM ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex}
+.modal-sheet{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:720px;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;animation:slideUp .35s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-header{padding:16px 20px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.modal-header-left{display:flex;align-items:center;gap:10px}
+.modal-header-icon{font-size:26px}
+.modal-header-title{font-size:15px;font-weight:800;color:var(--navy);line-height:1.2}
+.modal-header-sub{font-size:11px;color:var(--muted);margin-top:1px}
+.modal-close{width:32px;height:32px;border-radius:50%;border:1.5px solid var(--border);background:var(--light);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1}
+.modal-close:hover{background:#FEE2E2;border-color:#FECACA}
+.modal-tabs{display:flex;border-bottom:1.5px solid var(--border);flex-shrink:0;background:#FAFBFD}
+.modal-tab{padding:10px 0;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2.5px solid transparent;font-family:'Sarabun',sans-serif;background:none;border-top:none;border-left:none;border-right:none;flex:1;text-align:center;transition:all .2s}
+.modal-tab.active{color:var(--blue);border-bottom-color:var(--blue);background:#fff}
+.modal-tab:hover{color:var(--navy)}
+.modal-body{padding:16px 20px;overflow-y:auto;flex:1}
+.modal-panel{display:none}.modal-panel.active{display:block}
+.modal-summary-box{font-size:12px;line-height:1.8;color:var(--text);background:var(--light);border-radius:10px;padding:14px 16px;border-left:3px solid var(--blue)}
+.modal-law-item{background:#FEF2F2;border-radius:8px;padding:10px 12px;margin-bottom:8px;border-left:3px solid #DC2626}
+.modal-law-ref{font-size:11px;font-weight:800;color:#DC2626;margin-bottom:2px}
+.modal-law-desc{font-size:11px;color:var(--text);line-height:1.5}
+.modal-source-item{display:flex;gap:10px;padding:10px 12px;background:var(--light);border-radius:8px;margin-bottom:8px;align-items:flex-start}
+.modal-source-icon{font-size:22px;flex-shrink:0;margin-top:1px}
+.modal-source-name{font-size:12px;font-weight:700;color:var(--navy);margin-bottom:2px}
+.modal-source-desc{font-size:11px;color:var(--muted)}
+.modal-source-link{display:inline-block;font-size:10px;color:var(--blue);font-weight:700;margin-top:4px;text-decoration:none;border:1px solid var(--blue);border-radius:6px;padding:1px 7px}
+.modal-source-link:hover{background:var(--blue);color:#fff}
+.info-btn{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);border-radius:10px;padding:2px 8px;font-size:10px;color:rgba(255,255,255,.95);cursor:pointer;font-family:'Sarabun',sans-serif;font-weight:600;transition:all .2s;white-space:nowrap}
+.info-btn:hover{background:rgba(255,255,255,.32)}
+.info-btn-light{background:#EEF4FB;border:1px solid #C5D5E8;border-radius:10px;padding:2px 8px;font-size:10px;color:var(--blue);cursor:pointer;font-family:'Sarabun',sans-serif;font-weight:600;transition:all .2s;white-space:nowrap;display:inline-block;margin-top:6px}
+.info-btn-light:hover{background:var(--blue);color:#fff}
+.learn-btn{display:inline-block;margin-top:8px;padding:3px 10px;font-size:10px;font-weight:700;border-radius:8px;cursor:pointer;font-family:'Sarabun',sans-serif;background:transparent;transition:all .2s}
+.learn-btn:hover{opacity:.75}
+
+/* ── PURPOSE/DISCLAIMER STRIP ── */
+.purpose-strip{background:linear-gradient(135deg,#F0FDF4,#ECFDF5);border:1.5px solid #86EFAC;border-radius:14px;padding:14px 20px;display:flex;align-items:flex-start;gap:14px}
+.purpose-strip-icon{font-size:26px;flex-shrink:0;margin-top:1px}
+.purpose-strip-body{flex:1}
+.purpose-strip-title{font-size:13px;font-weight:800;color:#065F46;margin-bottom:5px}
+.purpose-strip-text{font-size:11px;color:#047857;line-height:1.7}
+.purpose-disclaimer{background:linear-gradient(135deg,#FFFBEB,#FEF3C7);border:1.5px solid #FDE68A;border-radius:10px;padding:8px 14px;display:flex;align-items:flex-start;gap:8px;font-size:11px;color:#92400E;margin-top:8px;line-height:1.6}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="logo">
+      <div class="logo-icon">🏛️</div>
+      <div>
+        <div class="logo-text">Decision Intelligence Dashboard</div>
+        <div class="logo-sub">เทศบาลนครนครสวรรค์ | มิติผู้อำนวยการ</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <a href="/" style="text-decoration:none;color:rgba(255,255,255,.8);font-size:11px;padding:4px 10px;background:rgba(255,255,255,.1);border-radius:6px;transition:all .2s" onmouseover="this.style.background='rgba(255,255,255,.2)'" onmouseout="this.style.background='rgba(255,255,255,.1)'">← กลับหน้าหลัก</a>
+      <a href="/decision-dashboard" style="text-decoration:none;color:rgba(255,255,255,.8);font-size:11px;padding:4px 10px;background:rgba(255,255,255,.1);border-radius:6px;transition:all .2s" onmouseover="this.style.background='rgba(255,255,255,.2)'" onmouseout="this.style.background='rgba(255,255,255,.1)'">📊 React Version</a>
+      <div class="live-badge"><span class="live-dot"></span> Live Analysis</div>
+      <div class="doc-tag">📄 CCF_000068</div>
+      <div class="doc-tag">มีนาคม ๒๕๖๙</div>
+    </div>
+  </div>
+</div>
+
+<!-- FILTER BAR -->
+<div class="filter-bar">
+  <span class="filter-label">🔍 Filter</span>
+  <div class="filter-group">
+    <button class="filter-btn active all" data-filter="all" data-type="cat">ทั้งหมด</button>
+    <button class="filter-btn cat-cyber" data-filter="cyber" data-type="cat">🛡️ Cyber Security</button>
+    <button class="filter-btn cat-pdpa" data-filter="pdpa" data-type="cat">🔒 PDPA</button>
+    <button class="filter-btn cat-digital" data-filter="digital" data-type="cat">🌐 Digital Service</button>
+    <button class="filter-btn cat-smart" data-filter="smart" data-type="cat">🏙️ Smart City</button>
+  </div>
+  <div class="f-divider"></div>
+  <div class="filter-group">
+    <button class="filter-btn risk-high" data-filter="high" data-type="risk">🔴 เร่งด่วนสูง</button>
+    <button class="filter-btn risk-med" data-filter="med" data-type="risk">🟡 เร่งด่วนปานกลาง</button>
+    <button class="filter-btn risk-low" data-filter="low" data-type="risk">🟢 ต่ำ</button>
+  </div>
+  <div class="f-divider"></div>
+  <div class="filter-group">
+    <button class="filter-btn yr-69" data-filter="2569" data-type="year">ปี ๒๕๖๙</button>
+    <button class="filter-btn yr-70" data-filter="2570" data-type="year">ปี ๒๕๗๐</button>
+  </div>
+  <button class="clear-btn" id="clearBtn">✕ ล้าง Filter</button>
+  <span class="result-count" id="resultCount">แสดง 7/7 โครงการ</span>
+</div>
+
+<div class="main">
+
+<!-- ALERT BANNER -->
+<div class="alert-banner" id="alertBanner">
+  <div class="alert-icon">⚠️</div>
+  <div class="alert-text">
+    <h3>ข้อมูลเชิงนโยบาย: ภัยคุกคามไซเบอร์ในไทยสูงกว่าค่าเฉลี่ยโลก 164% — กฎหมาย PDPA บังคับใช้เข้มข้นปี ๒๕๖๙</h3>
+    <p>Thailand GCI Rank #7 โลก แต่องค์กรในไทยถูกโจมตี 3,201 ครั้ง/สัปดาห์ | ค่าปรับ PDPA สะสม ๒๑.๕ ล้านบาท (ส.ค.๒๕๖๘) | มาตรฐานเว็บไซต์ NCSA บังคับ ก.ย.๒๕๖๙</p>
+  </div>
+  <div class="alert-pills">
+    <span class="alert-pill urgent">⏰ Deadline ก.ย.๒๕๖๙</span>
+    <span class="alert-pill">🔴 ความเสี่ยงสูง</span>
+    <span class="alert-pill">💰 ปรับสูงสุด ๕ ล้าน</span>
+  </div>
+</div>
+
+<!-- KPI STRIP -->
+<div class="kpi-grid">
+  <div class="kpi-card kpi-red">
+    <div class="kpi-top">
+      <div class="kpi-icon-wrap" style="background:#FEE2E2">⚔️</div>
+      <span class="kpi-trend trend-up">+164% vs โลก</span>
+    </div>
+    <div class="kpi-val" style="color:#DC2626">3,201</div>
+    <div class="kpi-label">การโจมตีไซเบอร์<br>ต่อองค์กร/สัปดาห์</div>
+    <div class="kpi-sub">ค่าเฉลี่ยโลก: 1,946 ครั้ง | ไทยสูงกว่า 164%</div>
+  </div>
+  <div class="kpi-card kpi-amber">
+    <div class="kpi-top">
+      <div class="kpi-icon-wrap" style="background:#FEF3C7">⚖️</div>
+      <span class="kpi-trend trend-up">บังคับเพิ่มขึ้น</span>
+    </div>
+    <div class="kpi-val" style="color:#F59E0B">21.5M</div>
+    <div class="kpi-label">ค่าปรับ PDPA สะสม<br>(บาท, ส.ค.๒๕๖๘)</div>
+    <div class="kpi-sub">ปรับสูงสุดได้ ๕ ล้านบาท/กรณี | ๕ คดี ๘ คำสั่ง</div>
+  </div>
+  <div class="kpi-card kpi-blue">
+    <div class="kpi-top">
+      <div class="kpi-icon-wrap" style="background:#DBEAFE">💸</div>
+      <span class="kpi-trend trend-up">ความเสี่ยงสูง</span>
+    </div>
+    <div class="kpi-val" style="color:#1A5FA8">130M+</div>
+    <div class="kpi-label">ต้นทุนเฉลี่ยต่อ<br>Breach (บาท)</div>
+    <div class="kpi-sub">AsiaPac avg USD 3.65M/incident | IBM 2025</div>
+  </div>
+  <div class="kpi-card kpi-teal">
+    <div class="kpi-top">
+      <div class="kpi-icon-wrap" style="background:#CFFAFE">🏆</div>
+      <span class="kpi-trend trend-ok">#7 โลก</span>
+    </div>
+    <div class="kpi-val" style="color:#00B4CC">#7</div>
+    <div class="kpi-label">อันดับ Global<br>Cybersecurity Index</div>
+    <div class="kpi-sub">ITU GCI 2024 | คะแนน 99.22/100 | แต่ช่องว่างการปฏิบัติยังสูง</div>
+  </div>
+  <div class="kpi-card kpi-purple">
+    <div class="kpi-top">
+      <div class="kpi-icon-wrap" style="background:#EDE9FE">🏙️</div>
+      <span class="kpi-trend trend-ok">37→105 เมือง</span>
+    </div>
+    <div class="kpi-val" style="color:#7C3AED">37</div>
+    <div class="kpi-label">Smart City เปิดดำเนินการ<br>(เป้าหมาย 105 เมือง/ปี ๒๕๗๐)</div>
+    <div class="kpi-sub">depa ลงทุน >๑๑.๙ พันล้านบาท | นครสวรรค์ต้องเร่ง</div>
+  </div>
+</div>
+
+<!-- ROW: Charts + Risk -->
+<div class="row-3">
+
+  <!-- Budget Analysis Chart -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title"><div class="card-dot" style="background:#1A5FA8"></div><h3>วิเคราะห์งบประมาณเทียบความเสี่ยง</h3></div>
+      <span class="card-tag" style="background:#DBEAFE;color:#1D4ED8">Interactive</span>
+    </div>
+    <div class="card-body">
+      <div class="chart-container" style="height:220px">
+        <canvas id="bubbleChart"></canvas>
+      </div>
+      <div style="font-size:10px;color:var(--muted);text-align:center;margin-top:6px">
+        แกน X = ระดับความเร่งด่วน | แกน Y = งบประมาณ | ขนาดวงกลม = ผลกระทบหากไม่ดำเนินการ
+      </div>
+    </div>
+  </div>
+
+  <!-- Threat Chart -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title"><div class="card-dot" style="background:#DC2626"></div><h3>สภาพการณ์ภัยคุกคาม ไทย vs โลก</h3></div>
+      <span class="card-tag" style="background:#FEE2E2;color:#DC2626">ข้อมูลจริง</span>
+    </div>
+    <div class="card-body">
+      <div class="chart-container" style="height:220px">
+        <canvas id="threatChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Investment vs Risk Chart -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title"><div class="card-dot" style="background:#00A86B"></div><h3>ลงทุน 8.8M vs ความเสี่ยง</h3></div>
+      <span class="card-tag" style="background:#D1FAE5;color:#065F46">ROI Analysis</span>
+    </div>
+    <div class="card-body">
+      <div class="threat-meter">
+        <div class="threat-number">8.8M</div>
+        <div class="threat-label-main">งบลงทุนทั้งหมด (บาท)</div>
+        <div class="threat-label-sub">vs. ต้นทุนหากเกิด Breach เพียง 1 ครั้ง ~130 ล้านบาท</div>
+        <div class="chart-container" style="height:100px;margin:10px 0">
+          <canvas id="roiBar"></canvas>
+        </div>
+        <div class="stat-row">
+          <div class="stat-mini">
+            <div class="stat-mini-val" style="color:#DC2626">130M</div>
+            <div class="stat-mini-lab">ต้นทุนเฉลี่ย Breach</div>
+          </div>
+          <div class="stat-mini">
+            <div class="stat-mini-val" style="color:#00A86B">14.7x</div>
+            <div class="stat-mini-lab">อัตราส่วน Risk/Invest</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ROW: Projects + Compliance -->
+<div class="row-3-2">
+
+  <!-- PROJECT CARDS -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title"><div class="card-dot" style="background:#7C3AED"></div><h3>รายละเอียด ๗ โครงการ (คลิกเพื่อดูข้อมูลเชิงลึก)</h3></div>
+      <span class="card-tag" style="background:#EDE9FE;color:#6D28D9">คลิกขยาย</span>
+    </div>
+    <div class="card-body" style="padding:12px">
+      <div class="proj-grid" id="projGrid">
+
+        <!-- Project 1 -->
+        <div class="proj-card anim-in" data-cat="pdpa" data-risk="high" data-year="2569" onclick="toggleDetail(this)">
+          <div class="proj-top">
+            <div class="proj-num" style="background:linear-gradient(135deg,#1A5FA8,#2E8FD4)">1</div>
+            <div class="proj-badges">
+              <span class="risk-badge risk-high">🔴 เร่งด่วนสูง</span>
+              <span class="yr-badge yr-69">ปี ๒๕๖๙</span>
+            </div>
+          </div>
+          <div class="proj-body">
+            <div class="proj-name">ระบบบริหารจัดการข้อมูลส่วนบุคคล (PDPA)</div>
+            <div class="proj-desc">จัดการข้อมูลส่วนบุคคลให้ปลอดภัยตาม พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล พ.ศ. ๒๕๖๒</div>
+            <div class="budget-bar-wrap">
+              <div class="proj-budget-wrap">
+                <span class="proj-budget" style="color:#1A5FA8">1,000,000</span>
+                <span class="proj-unit">บาท</span>
+              </div>
+              <div class="budget-bar-track"><div class="budget-bar-fill" style="width:11.4%;background:linear-gradient(90deg,#1A5FA8,#2E8FD4)"></div></div>
+            </div>
+          </div>
+          <div class="proj-detail" id="d1">
+            <div class="detail-row"><span class="detail-key">กฎหมาย</span><span class="detail-val"><span class="law-chip">พ.ร.บ.PDPA ๒๕๖๒</span></span></div>
+            <div class="detail-row"><span class="detail-key">โทษไม่ทำ</span><span class="detail-val" style="color:#DC2626;font-weight:700">ปรับสูงสุด ๕ ล้านบาท + จำคุก ๑ ปี</span></div>
+            <div class="detail-row"><span class="detail-key">สถานการณ์</span><span class="detail-val">PDPC ออก ๘ คำสั่งปรับ รวม ๒๑.๕ ล้านบาท (ส.ค.๒๕๖๘) มีหน่วยงานรัฐโดนด้วย</span></div>
+            <div class="detail-row"><span class="detail-key">Insight</span><span class="detail-val"><span class="insight-chip">⚠️ ต้องแต่งตั้ง DPO</span><span class="insight-chip">📋 กำหนดนโยบายข้อมูล</span></span></div>
+            <div class="detail-row"><span class="detail-key">KPI</span><span class="detail-val">ผู้ใช้บริการทุกคนได้รับการคุ้มครองข้อมูลตามกฎหมาย</span></div>
+          </div>
+          <div class="proj-footer"><span>🔒 หมวด: PDPA | กองยุทธศาสตร์ฯ</span><span class="proj-expand">▼ ดูเพิ่มเติม</span></div>
+        </div>
+
+        <!-- Project 2 -->
+        <div class="proj-card anim-in" data-cat="digital" data-risk="high" data-year="2569" onclick="toggleDetail(this)">
+          <div class="proj-top">
+            <div class="proj-num" style="background:linear-gradient(135deg,#00B4CC,#0EA5E9)">2</div>
+            <div class="proj-badges">
+              <span class="risk-badge risk-high">🔴 เร่งด่วนสูง</span>
+              <span class="yr-badge yr-69">ปี ๒๕๖๙</span>
+            </div>
+          </div>
+          <div class="proj-body">
+            <div class="proj-name">Website Interactive ของเทศบาล</div>
+            <div class="proj-desc">พัฒนาเว็บไซต์ทันสมัยตามมาตรฐานความปลอดภัย NCSA พ.ศ.๒๕๖๘</div>
+            <div class="budget-bar-wrap">
+              <div class="proj-budget-wrap">
+                <span class="proj-budget" style="color:#00B4CC">500,000</span>
+                <span class="proj-unit">บาท</span>
+              </div>
+              <div class="budget-bar-track"><div class="budget-bar-fill" style="width:5.7%;background:linear-gradient(90deg,#00B4CC,#0EA5E9)"></div></div>
+            </div>
+          </div>
+          <div class="proj-detail" id="d2">
+            <div class="detail-row"><span class="detail-key">กฎหมาย</span><span class="detail-val"><span class="law-chip">มาตรฐานเว็บไซต์ NCSA ๒๕๖๘</span></span></div>
+            <div class="detail-row"><span class="detail-key">Deadline</span><span class="detail-val" style="color:#DC2626;font-weight:700">บังคับ ๑๖ กันยายน ๒๕๖๙ (ประกาศราชกิจจาฯ)</span></div>
+            <div class="detail-row"><span class="detail-key">ข้อกำหนด</span><span class="detail-val">MFA สำหรับ admin, Incident Response, รายงาน NCSA</span></div>
+            <div class="detail-row"><span class="detail-key">Insight</span><span class="detail-val"><span class="insight-chip">⏰ 6 เดือนสุดท้าย</span><span class="insight-chip">🌐 ประตูสู่ E-Service</span></span></div>
+            <div class="detail-row"><span class="detail-key">KPI</span><span class="detail-val">เว็บไซต์มีมาตรฐาน ป้องกันการโจมตีได้มาตรฐาน</span></div>
+          </div>
+          <div class="proj-footer"><span>🌐 หมวด: Digital | กองยุทธศาสตร์ฯ</span><span class="proj-expand">▼ ดูเพิ่มเติม</span></div>
+        </div>
+
+        <!-- Project 3 -->
+        <div class="proj-card anim-in" data-cat="cyber" data-risk="high" data-year="2569" onclick="toggleDetail(this)">
+          <div class="proj-top">
+            <div class="proj-num" style="background:linear-gradient(135deg,#DC2626,#EF4444)">3</div>
+            <div class="proj-badges">
+              <span class="risk-badge risk-high">🔴 เร่งด่วนสูง</span>
+              <span class="yr-badge yr-69">ปี ๒๕๖๙</span>
+            </div>
+          </div>
+          <div class="proj-body">
+            <div class="proj-name">Cyber Security ระยะที่ ๑ (สำนักงานเทศบาล)</div>
+            <div class="proj-desc">ระบบป้องกันภัยไซเบอร์สำนักงานเทศบาลครบวงจร สอดคล้อง พ.ร.บ.ไซเบอร์ฯ</div>
+            <div class="budget-bar-wrap">
+              <div class="proj-budget-wrap">
+                <span class="proj-budget" style="color:#DC2626">1,500,000</span>
+                <span class="proj-unit">บาท</span>
+              </div>
+              <div class="budget-bar-track"><div class="budget-bar-fill" style="width:17%;background:linear-gradient(90deg,#DC2626,#EF4444)"></div></div>
+            </div>
+          </div>
+          <div class="proj-detail" id="d3">
+            <div class="detail-row"><span class="detail-key">กฎหมาย</span><span class="detail-val"><span class="law-chip">พ.ร.บ.ไซเบอร์ ๒๕๖๒</span><span class="law-chip">PDPA</span></span></div>
+            <div class="detail-row"><span class="detail-key">Deadline</span><span class="detail-val" style="color:#DC2626;font-weight:700">Baseline บังคับ ๑๘ ม.ค.๒๕๖๘ (มีผลแล้ว)</span></div>
+            <div class="detail-row"><span class="detail-key">สถานการณ์</span><span class="detail-val">โดเมนรัฐบาล ๑๖ แห่งถูกแฮกเมื่อ ต.ค.๒๕๖๗ | นครสวรรค์อยู่ในกลุ่มเสี่ยง</span></div>
+            <div class="detail-row"><span class="detail-key">Insight</span><span class="detail-val"><span class="insight-chip">🚨 ช้าไปแล้ว 1 ปี</span><span class="insight-chip">🔥 ความเสี่ยงสูงสุด</span></span></div>
+            <div class="detail-row"><span class="detail-key">KPI</span><span class="detail-val">ระบบ/ข้อมูล/เครือข่ายได้รับการป้องกันมาตรฐาน</span></div>
+          </div>
+          <div class="proj-footer"><span>🛡️ หมวด: Cyber | กองยุทธศาสตร์ฯ</span><span class="proj-expand">▼ ดูเพิ่มเติม</span></div>
+        </div>
+
+        <!-- Project 4 -->
+        <div class="proj-card anim-in" data-cat="cyber" data-risk="med" data-year="2570" onclick="toggleDetail(this)">
+          <div class="proj-top">
+            <div class="proj-num" style="background:linear-gradient(135deg,#9D174D,#DB2777)">4</div>
+            <div class="proj-badges">
+              <span class="risk-badge risk-med">🟡 ปานกลาง</span>
+              <span class="yr-badge yr-70">ปี ๒๕๗๐</span>
+            </div>
+          </div>
+          <div class="proj-body">
+            <div class="proj-name">Cyber Security ระยะที่ ๒ (หน่วยงาน+โรงเรียน)</div>
+            <div class="proj-desc">ขยายการปกป้องไซเบอร์ครอบคลุมหน่วยงานและโรงเรียนในสังกัดทั้งหมด</div>
+            <div class="budget-bar-wrap">
+              <div class="proj-budget-wrap">
+                <span class="proj-budget" style="color:#9D174D">1,800,000</span>
+                <span class="proj-unit">บาท</span>
+              </div>
+              <div class="budget-bar-track"><div class="budget-bar-fill" style="width:20.5%;background:linear-gradient(90deg,#9D174D,#DB2777)"></div></div>
+            </div>
+          </div>
+          <div class="proj-detail" id="d4">
+            <div class="detail-row"><span class="detail-key">กฎหมาย</span><span class="detail-val"><span class="law-chip">พ.ร.บ.ไซเบอร์ ๒๕๖๒</span><span class="law-chip">PDPA</span></span></div>
+            <div class="detail-row"><span class="detail-key">ขอบเขต</span><span class="detail-val">ครอบคลุมหน่วยงานและโรงเรียนในสังกัดเทศบาลทุกแห่ง</span></div>
+            <div class="detail-row"><span class="detail-key">Insight</span><span class="detail-val"><span class="insight-chip">📚 โรงเรียน=ข้อมูลเด็ก</span><span class="insight-chip">🏢 ขยายต่อเนื่อง</span></span></div>
+            <div class="detail-row"><span class="detail-key">Note</span><span class="detail-val">ควรดำเนินการต่อเนื่องจากระยะ 1 ในปี ๒๕๗๐</span></div>
+          </div>
+          <div class="proj-footer"><span>🛡️ หมวด: Cyber | ปี ๒๕๗๐</span><span class="proj-expand">▼ ดูเพิ่มเติม</span></div>
+        </div>
+
+        <!-- Project 5 -->
+        <div class="proj-card anim-in" data-cat="cyber" data-risk="high" data-year="2569" onclick="toggleDetail(this)">
+          <div class="proj-top">
+            <div class="proj-num" style="background:linear-gradient(135deg,#B91C1C,#DC2626)">5</div>
+            <div class="proj-badges">
+              <span class="risk-badge risk-high">🔴 เร่งด่วนสูง</span>
+              <span class="yr-badge yr-69">ปี ๒๕๖๙</span>
+            </div>
+          </div>
+          <div class="proj-body">
+            <div class="proj-name">Cyber Security รวม (ทุกองค์กรในสังกัด)</div>
+            <div class="proj-desc">ระบบ Cyber Security แบบครบวงจรสำหรับสำนักงาน+หน่วยงาน+โรงเรียน</div>
+            <div class="budget-bar-wrap">
+              <div class="proj-budget-wrap">
+                <span class="proj-budget" style="color:#B91C1C">3,000,000</span>
+                <span class="proj-unit">บาท</span>
+              </div>
+              <div class="budget-bar-track"><div class="budget-bar-fill" style="width:34%;background:linear-gradient(90deg,#B91C1C,#DC2626)"></div></div>
+            </div>
+          </div>
+          <div class="proj-detail" id="d5">
+            <div class="detail-row"><span class="detail-key">กฎหมาย</span><span class="detail-val"><span class="law-chip">พ.ร.บ.ไซเบอร์</span><span class="law-chip">PDPA</span></span></div>
+            <div class="detail-row"><span class="detail-key">ขอบเขต</span><span class="detail-val">ครอบคลุมทุกองค์กรในสังกัดเทศบาลนครนครสวรรค์</span></div>
+            <div class="detail-row"><span class="detail-key">ต้นทุนโอกาส</span><span class="detail-val" style="color:#DC2626;font-weight:700">ถ้า Breach ครั้งเดียว = ~130 ล้านบาท | ลงทุน 3 ล้านป้องกันได้ 43 เท่า</span></div>
+            <div class="detail-row"><span class="detail-key">Insight</span><span class="detail-val"><span class="insight-chip">💡 คุ้มค่าที่สุดในกลุ่ม</span><span class="insight-chip">🔥 ครอบคลุมสูงสุด</span></span></div>
+          </div>
+          <div class="proj-footer"><span>🛡️ หมวด: Cyber | ใหญ่ที่สุด ๓M</span><span class="proj-expand">▼ ดูเพิ่มเติม</span></div>
+        </div>
+
+        <!-- Project 6 -->
+        <div class="proj-card anim-in" data-cat="digital" data-risk="med" data-year="2569" onclick="toggleDetail(this)">
+          <div class="proj-top">
+            <div class="proj-num" style="background:linear-gradient(135deg,#7C3AED,#A78BFA)">6</div>
+            <div class="proj-badges">
+              <span class="risk-badge risk-med">🟡 ปานกลาง</span>
+              <span class="yr-badge yr-69">ปี ๒๕๖๙</span>
+            </div>
+          </div>
+          <div class="proj-body">
+            <div class="proj-name">ที่ปรึกษาพัฒนาแพลตฟอร์มดิจิทัล & บุคลากร</div>
+            <div class="proj-desc">ออกแบบ E-Service ด้าน Smart Governance, Smart Environment, Smart Living</div>
+            <div class="budget-bar-wrap">
+              <div class="proj-budget-wrap">
+                <span class="proj-budget" style="color:#7C3AED">500,000</span>
+                <span class="proj-unit">บาท</span>
+              </div>
+              <div class="budget-bar-track"><div class="budget-bar-fill" style="width:5.7%;background:linear-gradient(90deg,#7C3AED,#A78BFA)"></div></div>
+            </div>
+          </div>
+          <div class="proj-detail" id="d6">
+            <div class="detail-row"><span class="detail-key">นโยบาย</span><span class="detail-val">depa Smart City | รัฐบาลดิจิทัล | เป้า ๑,๐๐๐ E-Service ปี ๒๕๗๐</span></div>
+            <div class="detail-row"><span class="detail-key">งบรัฐ</span><span class="detail-val">DGA ได้รับงบ ๗.๙๖ พันล้านบาท ปี ๒๕๖๘ สำหรับ Digital Government</span></div>
+            <div class="detail-row"><span class="detail-key">KPI</span><span class="detail-val">ต้นแบบ E-Service ≥ ๕ ระบบ (HPA ข้อ ๓-๔-๙-๔-๙)</span></div>
+            <div class="detail-row"><span class="detail-key">Insight</span><span class="detail-val"><span class="insight-chip">🚀 เปิดทางงบฯ รัฐ</span><span class="insight-chip">📈 อันดับ EGDI ขึ้น</span></span></div>
+          </div>
+          <div class="proj-footer"><span>🏙️ หมวด: Smart City | Platform</span><span class="proj-expand">▼ ดูเพิ่มเติม</span></div>
+        </div>
+
+        <!-- Project 7 -->
+        <div class="proj-card anim-in" data-cat="smart" data-risk="low" data-year="2569" onclick="toggleDetail(this)">
+          <div class="proj-top">
+            <div class="proj-num" style="background:linear-gradient(135deg,#00A86B,#34D399)">7</div>
+            <div class="proj-badges">
+              <span class="risk-badge risk-low">🟢 ต่ำ</span>
+              <span class="yr-badge yr-69">ปี ๒๕๖๙</span>
+            </div>
+          </div>
+          <div class="proj-body">
+            <div class="proj-name">ที่ปรึกษาสื่อสารนโยบายเมืองน่าอยู่อัจฉริยะ</div>
+            <div class="proj-desc">พัฒนาการสื่อสาร 2 ทาง สร้างการมีส่วนร่วมประชาชนอย่างยั่งยืน</div>
+            <div class="budget-bar-wrap">
+              <div class="proj-budget-wrap">
+                <span class="proj-budget" style="color:#00A86B">500,000</span>
+                <span class="proj-unit">บาท</span>
+              </div>
+              <div class="budget-bar-track"><div class="budget-bar-fill" style="width:5.7%;background:linear-gradient(90deg,#00A86B,#34D399)"></div></div>
+            </div>
+          </div>
+          <div class="proj-detail" id="d7">
+            <div class="detail-row"><span class="detail-key">นโยบาย</span><span class="detail-val">Smart City | Sustainable Development | การมีส่วนร่วมประชาชน</span></div>
+            <div class="detail-row"><span class="detail-key">KPI</span><span class="detail-val">อาสาสมัครรักษ์โลก ≥ ๕% ของประชากรในเขตเทศบาล</span></div>
+            <div class="detail-row"><span class="detail-key">ผล</span><span class="detail-val">ลดค่าบริหารจัดการขยะ | เพิ่มการมีส่วนร่วม | ยกระดับคุณภาพเมือง</span></div>
+            <div class="detail-row"><span class="detail-key">Insight</span><span class="detail-val"><span class="insight-chip">🌱 ระยะยาว</span><span class="insight-chip">👥 Soft Power</span></span></div>
+          </div>
+          <div class="proj-footer"><span>🏙️ หมวด: Smart City | Communication</span><span class="proj-expand">▼ ดูเพิ่มเติม</span></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Compliance Timeline -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title"><div class="card-dot" style="background:#F59E0B"></div><h3>Compliance Deadline</h3></div>
+      <span class="card-tag" style="background:#FEF3C7;color:#92400E">Critical</span>
+    </div>
+    <div class="card-body" style="padding:12px 16px">
+      <div class="comp-timeline">
+        <div class="comp-item">
+          <div class="comp-dot-wrap">
+            <div class="comp-dot" style="background:#DC2626">!</div>
+            <div class="comp-line"></div>
+          </div>
+          <div class="comp-info">
+            <div class="comp-title">พ.ร.บ.PDPA บังคับเต็มรูปแบบ</div>
+            <div class="comp-date">มิถุนายน ๒๕๖๕ (มีผลแล้ว)</div>
+            <div class="comp-status status-overdue">🔴 ยังไม่มีระบบ = เสี่ยงทุกวัน</div>
+            <div class="comp-penalty">ปรับสูงสุด ๕ ล้านบาท | จำคุก ๑ ปี</div>
+          </div>
+        </div>
+        <div class="comp-item">
+          <div class="comp-dot-wrap">
+            <div class="comp-dot" style="background:#DC2626">!</div>
+            <div class="comp-line"></div>
+          </div>
+          <div class="comp-info">
+            <div class="comp-title">พ.ร.บ.ไซเบอร์ฯ Baseline บังคับ</div>
+            <div class="comp-date">๑๘ มกราคม ๒๕๖๘ (มีผลแล้ว)</div>
+            <div class="comp-status status-overdue">🔴 ต้องดำเนินการทันที</div>
+            <div class="comp-penalty">คำสั่งปรับ + อาจต้องรับผิดทางอาญา</div>
+          </div>
+        </div>
+        <div class="comp-item">
+          <div class="comp-dot-wrap">
+            <div class="comp-dot" style="background:#F59E0B">⏰</div>
+            <div class="comp-line"></div>
+          </div>
+          <div class="comp-info">
+            <div class="comp-title">มาตรฐานเว็บไซต์ NCSA พ.ศ.๒๕๖๘</div>
+            <div class="comp-date">บังคับ ๑๖ กันยายน ๒๕๖๙</div>
+            <div class="comp-status status-urgent">🟡 เหลือเวลา ~6 เดือน</div>
+            <div class="comp-penalty">ต้องมี MFA + Incident Response</div>
+          </div>
+        </div>
+        <div class="comp-item">
+          <div class="comp-dot-wrap">
+            <div class="comp-dot" style="background:#7C3AED">🏙️</div>
+            <div class="comp-line"></div>
+          </div>
+          <div class="comp-info">
+            <div class="comp-title">เป้าหมาย Smart City ๑๐๕ เมือง</div>
+            <div class="comp-date">ปี ๒๕๗๐</div>
+            <div class="comp-status status-plan">🟣 ต้องเริ่มวางโครงสร้างพื้นฐาน</div>
+            <div class="comp-penalty">นครสวรรค์ต้องพร้อมก่อนกำหนด</div>
+          </div>
+        </div>
+        <div class="comp-item">
+          <div class="comp-dot-wrap">
+            <div class="comp-dot" style="background:#00A86B">✓</div>
+          </div>
+          <div class="comp-info">
+            <div class="comp-title">เป้า ๑,๐๐๐ E-Service ทั่วประเทศ</div>
+            <div class="comp-date">ปี ๒๕๗๐ (DGA)</div>
+            <div class="comp-status status-ok">🟢 โครงการ 6 รองรับเป้านี้</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ROW: Risk Matrix + Benchmark + Insights -->
+<div class="row-2">
+
+  <!-- Risk Matrix -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title"><div class="card-dot" style="background:#DC2626"></div><h3>Risk Matrix: ความน่าจะเป็น × ผลกระทบ</h3></div>
+      <span class="card-tag" style="background:#FEE2E2;color:#DC2626">Hover ดูรายละเอียด</span>
+    </div>
+    <div class="card-body">
+      <div style="display:grid;grid-template-columns:28px 1fr 1fr 1fr;grid-template-rows:auto auto auto auto 28px;gap:5px;height:240px">
+        <!-- Labels Y -->
+        <div style="writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg);font-size:9px;color:var(--muted);font-weight:700;display:flex;align-items:center;justify-content:center;grid-column:1;grid-row:1/5">ความน่าจะเป็น ↑</div>
+        <div style="font-size:9px;color:var(--muted);font-weight:600;display:flex;align-items:center;justify-content:center;grid-column:1;grid-row:1">สูง</div>
+        <div style="font-size:9px;color:var(--muted);font-weight:600;display:flex;align-items:center;justify-content:center;grid-column:1;grid-row:2">กลาง</div>
+        <div style="font-size:9px;color:var(--muted);font-weight:600;display:flex;align-items:center;justify-content:center;grid-column:1;grid-row:3">ต่ำ</div>
+        <!-- Row 1 High prob -->
+        <div style="background:#FEE2E2;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:4px;padding:6px;grid-column:2;grid-row:1">
+          <div class="rm-proj" style="background:linear-gradient(135deg,#1A5FA8,#2E8FD4)" title="โครงการ 1: PDPA">1</div>
+          <div class="rm-proj" style="background:linear-gradient(135deg,#DC2626,#EF4444)" title="โครงการ 3: Cyber P1">3</div>
+        </div>
+        <div style="background:#FEF3C7;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:4px;padding:6px;grid-column:3;grid-row:1">
+          <div class="rm-proj" style="background:linear-gradient(135deg,#B91C1C,#DC2626)" title="โครงการ 5: Cyber รวม">5</div>
+        </div>
+        <div style="background:#FEF3C7;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:6px;grid-column:4;grid-row:1"></div>
+        <!-- Row 2 Med prob -->
+        <div style="background:#FEF3C7;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:4px;padding:6px;grid-column:2;grid-row:2">
+          <div class="rm-proj" style="background:linear-gradient(135deg,#00B4CC,#0EA5E9)" title="โครงการ 2: Website">2</div>
+        </div>
+        <div style="background:#FEF3C7;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:4px;padding:6px;grid-column:3;grid-row:2">
+          <div class="rm-proj" style="background:linear-gradient(135deg,#9D174D,#DB2777)" title="โครงการ 4: Cyber P2">4</div>
+        </div>
+        <div style="background:#D1FAE5;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:6px;grid-column:4;grid-row:2"></div>
+        <!-- Row 3 Low prob -->
+        <div style="background:#D1FAE5;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:6px;grid-column:2;grid-row:3"></div>
+        <div style="background:#D1FAE5;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:4px;padding:6px;grid-column:3;grid-row:3">
+          <div class="rm-proj" style="background:linear-gradient(135deg,#7C3AED,#A78BFA)" title="โครงการ 6: Digital">6</div>
+        </div>
+        <div style="background:#D1FAE5;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:4px;padding:6px;grid-column:4;grid-row:3">
+          <div class="rm-proj" style="background:linear-gradient(135deg,#00A86B,#34D399)" title="โครงการ 7: Smart City">7</div>
+        </div>
+        <!-- X axis labels -->
+        <div style="grid-column:2;grid-row:4;font-size:9px;color:var(--muted);font-weight:600;text-align:center">ผลกระทบต่ำ</div>
+        <div style="grid-column:3;grid-row:4;font-size:9px;color:var(--muted);font-weight:600;text-align:center">ผลกระทบกลาง</div>
+        <div style="grid-column:4;grid-row:4;font-size:9px;color:var(--muted);font-weight:600;text-align:center">ผลกระทบสูง →</div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted)"><div style="width:12px;height:12px;background:#FEE2E2;border-radius:3px"></div>ความเสี่ยงสูง</div>
+        <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted)"><div style="width:12px;height:12px;background:#FEF3C7;border-radius:3px"></div>ความเสี่ยงปานกลาง</div>
+        <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted)"><div style="width:12px;height:12px;background:#D1FAE5;border-radius:3px"></div>ความเสี่ยงต่ำ</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Budget Benchmark -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title"><div class="card-dot" style="background:#00A86B"></div><h3>Benchmark: ความคุ้มค่าของงบประมาณ</h3></div>
+      <span class="card-tag" style="background:#D1FAE5;color:#065F46">เทียบอ้างอิง</span>
+    </div>
+    <div class="card-body">
+      <div class="bench-wrap">
+        <table class="bench-table">
+          <thead>
+            <tr>
+              <th>สถานการณ์</th>
+              <th>มูลค่า (บาท)</th>
+              <th>เทียบกับงบฯ ๘.๘M</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>💸 ต้นทุนเฉลี่ย Data Breach 1 ครั้ง (IBM 2025, AsiaPac)</td>
+              <td>~130,000,000</td>
+              <td class="red-cell">สูงกว่า 14.7 เท่า</td>
+            </tr>
+            <tr>
+              <td>⚖️ ค่าปรับ PDPA สูงสุดต่อกรณี</td>
+              <td>5,000,000</td>
+              <td class="red-cell">เพียงกรณีเดียว = 57% ของงบ</td>
+            </tr>
+            <tr>
+              <td>📊 ค่าปรับ PDPA ทั้งหมดที่ออกไปแล้ว (ส.ค.๒๕๖๘)</td>
+              <td>21,500,000</td>
+              <td class="red-cell">สูงกว่างบทั้งหมด 2.4 เท่า</td>
+            </tr>
+            <tr>
+              <td>🏗️ งบ Smart City ทั่วประเทศ (depa ลงทุนสะสม)</td>
+              <td>11,900,000,000</td>
+              <td class="green-cell">นครสวรรค์ลงทุน 0.07% เท่านั้น</td>
+            </tr>
+            <tr>
+              <td>🖥️ งบ DGA Digital Gov ปี ๒๕๖๘</td>
+              <td>7,960,000,000</td>
+              <td class="green-cell">โอกาสขอสนับสนุนเพิ่ม</td>
+            </tr>
+            <tr>
+              <td>🚨 ค่าเสียหายโจมตีรัฐบาล ๑๖ โดเมน ต.ค.๒๕๖๗</td>
+              <td>ประเมินสูงมาก</td>
+              <td class="red-cell">ความเสี่ยงสูงมากหากไม่ดำเนินการ</td>
+            </tr>
+            <tr style="background:var(--light)">
+              <td><strong>✅ งบที่ขออนุมัติทั้งหมด</strong></td>
+              <td><strong>8,800,000</strong></td>
+              <td class="green-cell"><strong>ลงทุนน้อยมากเมื่อเทียบความเสี่ยง</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Insights Grid -->
+<div class="card">
+  <div class="card-head">
+    <div class="card-title"><div class="card-dot" style="background:#7C3AED"></div><h3>💡 Key Insights สำหรับผู้อำนวยการ — ข้อมูลจากแหล่งอ้างอิงภายนอก</h3></div>
+    <span class="card-tag" style="background:#EDE9FE;color:#6D28D9">Evidence-Based</span>
+  </div>
+  <div class="card-body">
+    <div class="insight-grid">
+      <div class="insight-card" style="background:#FEF2F2;border-color:#DC2626">
+        <div class="insight-icon">🚨</div>
+        <div class="insight-title" style="color:#DC2626">ไทยอยู่ในภาวะวิกฤติไซเบอร์</div>
+        <div class="insight-body">ถูกโจมตี <strong>3,201 ครั้ง/สัปดาห์</strong> สูงกว่าค่าเฉลี่ยโลก 164% มีแฮกเกอร์จีน-รัสเซียเป็นหลัก โดเมนรัฐบาล ๑๖ แห่งถูกเจาะในปี ๒๕๖๗ นครสวรรค์ไม่ใช่ข้อยกเว้น</div>
+      </div>
+      <div class="insight-card" style="background:#FFFBEB;border-color:#F59E0B">
+        <div class="insight-icon">⚖️</div>
+        <div class="insight-title" style="color:#92400E">กฎหมายบังคับใช้จริงแล้ว ไม่ใช่แค่นโยบาย</div>
+        <div class="insight-body">PDPC ออกคำสั่งปรับรวม <strong>๒๑.๕ ล้านบาทใน ๕ คดี</strong> มีหน่วยงานรัฐโดนด้วย พ.ร.บ.ไซเบอร์ Baseline บังคับแล้วตั้งแต่ ม.ค.๒๕๖๘ เว็บไซต์ต้องได้มาตรฐาน ก.ย.๒๕๖๙</div>
+      </div>
+      <div class="insight-card" style="background:#F0FDF4;border-color:#00A86B">
+        <div class="insight-icon">💡</div>
+        <div class="insight-title" style="color:#065F46">ลงทุน ๘.๘M ป้องกันความเสียหาย ๑๓๐M+</div>
+        <div class="insight-body">อัตราส่วน ROI สูงมาก: <strong>ลงทุน 1 บาท ป้องกันความเสี่ยง 14.7 บาท</strong> หากเกิด Breach เพียงครั้งเดียว ค่าเสียหายเฉลี่ย AsiaPac = ₿130 ล้านบาท ยังไม่นับค่าปรับตามกฎหมาย</div>
+      </div>
+      <div class="insight-card" style="background:#EFF6FF;border-color:#1A5FA8">
+        <div class="insight-icon">🏆</div>
+        <div class="insight-title" style="color:#1D4ED8">ไทยอันดับ #7 โลก GCI แต่ติดกับดัก "Policy-Practice Gap"</div>
+        <div class="insight-body">ไทยมีนโยบายดีระดับโลก (GCI #7) แต่ <strong>ยังขาดการปฏิบัติจริงในระดับท้องถิ่น</strong> นครสวรรค์มีโอกาสเป็น Best Practice ของประเทศ และอาจได้รับการสนับสนุนงบประมาณเพิ่มเติม</div>
+      </div>
+      <div class="insight-card" style="background:#F5F3FF;border-color:#7C3AED">
+        <div class="insight-icon">🏙️</div>
+        <div class="insight-title" style="color:#6D28D9">Smart City เป็น "ทางรอด" ไม่ใช่ "ทางเลือก"</div>
+        <div class="insight-body">รัฐบาลตั้งเป้า <strong>๑๐๕ Smart City ปี ๒๕๗๐</strong> | ๑,๐๐๐ E-Service | งบ DGA ๗.๙๖ พันล้าน ท้องถิ่นที่ไม่เริ่มตอนนี้จะตามไม่ทัน โครงการ 6-7 คือ "ก้าวแรก" ที่จำเป็น</div>
+      </div>
+      <div class="insight-card" style="background:#FFF1F2;border-color:#DB2777">
+        <div class="insight-icon">📊</div>
+        <div class="insight-title" style="color:#9D174D">ข้อมูลส่วนบุคคล = ความเสี่ยงทุกวัน</div>
+        <div class="insight-body">PDPC พบ <strong>๕,๒๗๓ กรณีข้อมูลรั่วไหล</strong> ใน 3 เดือน (พ.ย.๖๖–ม.ค.๖๗) | รหัสผ่านรั่วไหล ๕ ล้านชุด เพิ่ม ๖,๒๕๐% เทศบาลที่ไม่มีระบบ PDPA เสี่ยงทุกวันที่ผ่านไป</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recommendation + Decision Box -->
+<div class="row-2-3">
+
+  <!-- Recommendation -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title"><div class="card-dot" style="background:#00A86B"></div><h3>📋 ข้อเสนอแนะเชิงลำดับความสำคัญ</h3></div>
+    </div>
+    <div class="card-body">
+      <div class="rec-items">
+        <div class="rec-item" style="background:#FEF2F2;border-color:#DC2626">
+          <div class="rec-num" style="background:#DC2626">1</div>
+          <div>
+            <div class="rec-title" style="color:#DC2626">อนุมัติ "ด่วนที่สุด" — Cyber Security ระยะ 1 + PDPA</div>
+            <div class="rec-body">พ.ร.บ.ไซเบอร์ Baseline บังคับแล้วตั้งแต่ ม.ค.๒๕๖๘ เป็นเวลากว่า 1 ปีที่ยังไม่มีระบบ โครงการ 1 และ 3 ควรดำเนินการภายใน Q1-Q2 ของปีงบประมาณ ๒๕๖๙</div>
+            <span class="rec-tag" style="background:#FEE2E2;color:#DC2626">🔴 ดำเนินการทันที</span>
+          </div>
+        </div>
+        <div class="rec-item" style="background:#FFFBEB;border-color:#F59E0B">
+          <div class="rec-num" style="background:#F59E0B">2</div>
+          <div>
+            <div class="rec-title" style="color:#92400E">อนุมัติก่อน ก.ย.๒๕๖๙ — Website + Cyber รวม</div>
+            <div class="rec-body">มาตรฐานเว็บไซต์ NCSA บังคับ ก.ย.๒๕๖๙ — เหลือเวลา ~6 เดือน โครงการ 2 และ 5 ต้องเริ่มดำเนินการไม่เกิน Q2 เพื่อให้ทันกำหนด</div>
+            <span class="rec-tag" style="background:#FEF3C7;color:#92400E">🟡 ตาม Deadline กฎหมาย</span>
+          </div>
+        </div>
+        <div class="rec-item" style="background:#F0FDF4;border-color:#00A86B">
+          <div class="rec-num" style="background:#00A86B">3</div>
+          <div>
+            <div class="rec-title" style="color:#065F46">อนุมัติ — Digital Platform + Smart City (Q3-Q4)</div>
+            <div class="rec-body">โครงการ 6, 7 ควรดำเนินการในครึ่งปีหลัง เป็นการวางรากฐานระยะยาวสู่ Smart City ใช้ผลลัพธ์เพื่อขอสนับสนุนงบประมาณจาก depa และ DGA ต่อไป</div>
+            <span class="rec-tag" style="background:#D1FAE5;color:#065F46">🟢 วางรากฐาน Smart City</span>
+          </div>
+        </div>
+        <div class="rec-item" style="background:#F5F3FF;border-color:#7C3AED">
+          <div class="rec-num" style="background:#7C3AED">4</div>
+          <div>
+            <div class="rec-title" style="color:#6D28D9">วางแผน — Cyber ระยะ 2 (ปี ๒๕๗๐)</div>
+            <div class="rec-body">โครงการ 4 ต้องอนุมัติงบปี ๒๕๗๐ ให้เริ่มดำเนินการในช่วง Q1 ๒๕๗๐ ต่อเนื่องจากระยะ 1 ที่สร้างไว้แล้ว</div>
+            <span class="rec-tag" style="background:#EDE9FE;color:#6D28D9">🟣 แผนปีถัดไป</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Decision Box -->
+  <div class="approve-card">
+    <div class="approve-inner">
+      <div class="approve-icon">🏛️</div>
+      <div class="approve-title">สรุปเพื่อการตัดสินใจ</div>
+      <div class="approve-sub">
+        เอกสาร CCF_000068 ขออนุมัติเพิ่มเติมแผนพัฒนาท้องถิ่น (พ.ศ.๒๕๖๖–๒๕๗๐)<br>
+        ทบทวนครั้งที่ ๑/๒๕๖๖ เพิ่มเติมครั้งที่ ๒/๒๕๖๙ จำนวน ๗ โครงการ<br>
+        <strong>เสนอโดย: นายณัฏฐวุฒิ จีนมหันต์ | หัวหน้ากลุ่มงานสถิติข้อมูลและสารสนเทศ</strong>
+      </div>
+      <div class="approve-stats">
+        <div class="approve-stat">
+          <div class="approve-stat-val">7</div>
+          <div class="approve-stat-lab">โครงการทั้งหมด</div>
+        </div>
+        <div class="approve-stat">
+          <div class="approve-stat-val">8.8M</div>
+          <div class="approve-stat-lab">งบรวม (บาท)</div>
+        </div>
+        <div class="approve-stat">
+          <div class="approve-stat-val">3/7</div>
+          <div class="approve-stat-lab">โครงการเร่งด่วนสูง</div>
+        </div>
+      </div>
+      <div class="approve-risk-compare">
+        <div class="risk-side danger">
+          <div class="risk-side-label">ความเสี่ยงหากไม่อนุมัติ</div>
+          <div class="risk-side-val">≥130 ล้าน/ครั้ง</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.6);margin-top:2px">ต้นทุน Breach + ค่าปรับกฎหมาย</div>
+        </div>
+        <div class="vs-label">VS</div>
+        <div class="risk-side safe">
+          <div class="risk-side-label">งบที่ขออนุมัติ</div>
+          <div class="risk-side-val">8.8 ล้านบาท</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.6);margin-top:2px">ลงทุนน้อยกว่า 14.7 เท่า</div>
+        </div>
+      </div>
+      <div style="margin-top:14px;padding:10px;background:rgba(255,255,255,.08);border-radius:10px;
+        border:1px solid rgba(255,255,255,.15);font-size:11px;color:rgba(255,255,255,.85);line-height:1.6">
+        ✅ โครงการ 1, 2, 3, 5 มีกฎหมายบังคับรองรับชัดเจน<br>
+        ✅ โครงการ 4 สอดคล้องแผนต่อเนื่องปีงบประมาณ ๒๕๗๐<br>
+        ✅ โครงการ 6, 7 รองรับเป้าหมาย Smart City และ E-Government<br>
+        ⚠️ ความล่าช้าทุกเดือน = เพิ่มความเสี่ยงทางกฎหมายและความมั่นคง
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- FOOTER -->
+<div class="dash-footer">
+  <span>📊 Dashboard สร้างจากข้อมูลจริง: PDPC, NCSA, ITU GCI 2024, IBM Data Breach Report 2025, depa Smart City, Bangkok Post, Nation Thailand</span>
+  <span>เทศบาลนครนครสวรรค์ | CCF_000068 | มีนาคม ๒๕๖๙</span>
+</div>
+
+<script>
+// ────────────────────────────────────────────────
+// FILTER SYSTEM
+// ────────────────────────────────────────────────
+const state = { cat: 'all', risk: null, year: null };
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const type = btn.dataset.type;
+    const val = btn.dataset.filter;
+    if (type === 'cat') {
+      state.cat = state.cat === val ? 'all' : val;
+      document.querySelectorAll('.filter-btn[data-type="cat"]').forEach(b => b.classList.remove('active'));
+      const active = state.cat === 'all'
+        ? document.querySelector('.filter-btn[data-filter="all"]')
+        : btn;
+      active.classList.add('active');
+    } else if (type === 'risk') {
+      state.risk = state.risk === val ? null : val;
+      document.querySelectorAll('.filter-btn[data-type="risk"]').forEach(b => b.classList.remove('active'));
+      if (state.risk) btn.classList.add('active');
+    } else if (type === 'year') {
+      state.year = state.year === val ? null : val;
+      document.querySelectorAll('.filter-btn[data-type="year"]').forEach(b => b.classList.remove('active'));
+      if (state.year) btn.classList.add('active');
+    }
+    applyFilters();
+  });
+});
+
+document.getElementById('clearBtn').addEventListener('click', () => {
+  state.cat = 'all'; state.risk = null; state.year = null;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.filter-btn[data-filter="all"]').classList.add('active');
+  applyFilters();
+});
+
+function applyFilters() {
+  const cards = document.querySelectorAll('.proj-card');
+  let visible = 0;
+  cards.forEach(card => {
+    const catOk = state.cat === 'all' || card.dataset.cat === state.cat;
+    const riskOk = !state.risk || card.dataset.risk === state.risk;
+    const yearOk = !state.year || card.dataset.year === state.year;
+    if (catOk && riskOk && yearOk) {
+      card.classList.remove('filtered-out');
+      visible++;
+    } else {
+      card.classList.add('filtered-out');
+    }
+  });
+  document.getElementById('resultCount').textContent = `แสดง ${visible}/7 โครงการ`;
+  updateCharts();
+}
+
+// ────────────────────────────────────────────────
+// TOGGLE PROJECT DETAIL
+// ────────────────────────────────────────────────
+function toggleDetail(card) {
+  const id = 'd' + card.querySelector('.proj-num').textContent;
+  const detail = document.getElementById(id);
+  const expand = card.querySelector('.proj-expand');
+  if (detail.classList.contains('open')) {
+    detail.classList.remove('open');
+    expand.textContent = '▼ ดูเพิ่มเติม';
+    card.classList.remove('selected');
+  } else {
+    detail.classList.add('open');
+    expand.textContent = '▲ ซ่อน';
+    card.classList.add('selected');
+  }
+}
+
+// ────────────────────────────────────────────────
+// CHARTS
+// ────────────────────────────────────────────────
+Chart.defaults.font.family = "'Sarabun', sans-serif";
+
+const projectData = [
+  { id:1, label:'PDPA', budget:1000000, urgency:9, impact:8, cat:'pdpa', color:'#1A5FA8' },
+  { id:2, label:'Website', budget:500000, urgency:8, impact:6, cat:'digital', color:'#00B4CC' },
+  { id:3, label:'Cyber ระยะ1', budget:1500000, urgency:10, impact:9, cat:'cyber', color:'#DC2626' },
+  { id:4, label:'Cyber ระยะ2', budget:1800000, urgency:6, impact:7, cat:'cyber', color:'#9D174D' },
+  { id:5, label:'Cyber รวม', budget:3000000, urgency:10, impact:10, cat:'cyber', color:'#B91C1C' },
+  { id:6, label:'Digital Platform', budget:500000, urgency:5, impact:6, cat:'digital', color:'#7C3AED' },
+  { id:7, label:'Smart City', budget:500000, urgency:4, impact:5, cat:'smart', color:'#00A86B' },
+];
+
+// Bubble chart
+const bubbleCtx = document.getElementById('bubbleChart').getContext('2d');
+const bubbleChart = new Chart(bubbleCtx, {
+  type: 'bubble',
+  data: {
+    datasets: projectData.map(p => ({
+      label: `โครงการ ${p.id}: ${p.label}`,
+      data: [{ x: p.urgency, y: p.budget/1000000, r: p.impact * 2.5 }],
+      backgroundColor: p.color + 'CC',
+      borderColor: p.color,
+      borderWidth: 2,
+    }))
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => {
+            const p = projectData[ctx.datasetIndex];
+            return [`${p.label}`, `งบ: ${(p.budget/1000000).toFixed(1)}M บาท`, `ความเร่งด่วน: ${p.urgency}/10`, `ผลกระทบ: ${p.impact}/10`];
+          }
+        }
+      }
+    },
+    scales: {
+      x: { min:0, max:11, title: { display:true, text:'ความเร่งด่วน (1-10)', font:{size:10} }, grid:{color:'#F0F4F9'} },
+      y: { min:0, max:4, title: { display:true, text:'งบประมาณ (ล้านบาท)', font:{size:10} }, grid:{color:'#F0F4F9'} }
+    }
+  }
+});
+
+// Threat chart
+const threatCtx = document.getElementById('threatChart').getContext('2d');
+new Chart(threatCtx, {
+  type: 'bar',
+  data: {
+    labels: ['จำนวนเซิร์ฟเวอร์ถูกโจมตี\n(หน่วย:พัน, 2024 vs 2023)', 'การโจมตี/สัปดาห์\n(ไทย vs โลก)', 'ข้อมูลรั่วไหล\nในไทย (พัน ชุด)'],
+    datasets: [
+      { label: 'ปี/ค่าก่อนหน้า/ค่าเฉลี่ยโลก', data: [324, 1946, 80],
+        backgroundColor: '#93C5FD', borderRadius: 5 },
+      { label: 'ปี/ค่าปัจจุบัน/ค่าไทย', data: [733, 3201, 5000],
+        backgroundColor: '#DC2626', borderRadius: 5 },
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { position:'bottom', labels:{ font:{size:10}, padding:8, usePointStyle:true } },
+      tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.raw.toLocaleString()}` } }
+    },
+    scales: {
+      x: { grid:{ display:false }, ticks:{ font:{size:9} } },
+      y: { grid:{ color:'#F0F4F9' }, ticks:{ font:{size:10}, callback: v => v.toLocaleString() } }
+    }
+  }
+});
+
+// ROI Bar
+const roiCtx = document.getElementById('roiBar').getContext('2d');
+new Chart(roiCtx, {
+  type: 'bar',
+  data: {
+    labels: ['ลงทุน 8.8M', 'ต้นทุน Breach', 'ค่าปรับ PDPA (max)', 'ค่าปรับสะสม 5 คดี'],
+    datasets: [{
+      data: [8.8, 130, 5, 21.5],
+      backgroundColor: ['#00A86B', '#DC2626', '#F59E0B', '#EA580C'],
+      borderRadius: 6
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: ctx => ` ${ctx.raw}M บาท` } }
+    },
+    scales: {
+      x: { grid:{ color:'#F0F4F9' }, ticks:{ font:{size:9}, callback: v => v+'M' } },
+      y: { grid:{ display:false }, ticks:{ font:{size:9} } }
+    }
+  }
+});
+
+// Dynamic update (stub for filter)
+function updateCharts() {
+  const visible = Array.from(document.querySelectorAll('.proj-card'))
+    .filter(c => !c.classList.contains('filtered-out'))
+    .map(c => parseInt(c.querySelector('.proj-num').textContent) - 1);
+  bubbleChart.data.datasets.forEach((ds, i) => {
+    ds.backgroundColor = visible.includes(i) ? projectData[i].color + 'CC' : projectData[i].color + '22';
+    ds.borderColor = visible.includes(i) ? projectData[i].color : projectData[i].color + '44';
+  });
+  bubbleChart.update('active');
+}
+
+// Animate KPI numbers
+function animateNum(el, target, suffix='', decimals=0) {
+  let start = 0; const duration = 1500;
+  const step = timestamp => {
+    if (!start) start = timestamp;
+    const p = Math.min((timestamp - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - p, 3);
+    el.textContent = (ease * target).toFixed(decimals) + suffix;
+    if (p < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+document.querySelectorAll('.kpi-val').forEach((el, i) => {
+  const vals = [3201, 21.5, 130, 7, 37];
+  const suffixes = ['', 'M', 'M+', '', ''];
+  const decs = [0, 1, 0, 0, 0];
+  setTimeout(() => animateNum(el, vals[i], suffixes[i], decs[i]), i * 150);
+});
+</script>
+</body>
+</html>

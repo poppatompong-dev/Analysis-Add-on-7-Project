@@ -231,6 +231,9 @@ export default function DashboardApp({ initialProjects, mediaFiles, options, gen
           <div className="dashHeaderRight">
             <span className="chip chipCyan">{allProjects.length} โครงการ</span>
             <span className="chip chipAmber">สื่อ {mediaCounts.total} รายการ</span>
+            <a href="/decision-dashboard" className="button" style={{ textDecoration: 'none', display: 'inline-block' }}>
+              📊 Decision Dashboard
+            </a>
             <button type="button" className="button" aria-label="ส่งออกข้อมูลโครงการเป็นไฟล์ CSV"
               onClick={() => downloadText("ข้อมูลโครงการ.csv", csvText, "text/csv;charset=utf-8")}>
               ↓ ส่งออก CSV (ไฟล์ตาราง)
